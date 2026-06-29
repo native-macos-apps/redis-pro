@@ -1,5 +1,5 @@
 //
-//  Login.swift
+//  LoginView.swift
 //  redis-pro
 //
 //  Created by chengpanwang on 2021/1/25.
@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import AppKit
 import Logging
 
 struct LoginView: View {
@@ -25,13 +26,28 @@ struct LoginView: View {
     }
 
     var body: some View {
-        HSplitView {
+        NavigationSplitView {
             sidebarPanel
+                .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
+        } detail: {
             connectionListPanel
+        }
+        .navigationSplitViewStyle(.balanced)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    favoriteViewModel.login.redisModel = RedisModel()
+                    showEditSheet = true
+                }) {
+                    Image(systemName: "plus").font(.system(.body))
+                }
+                .help("New Server")
+            }
         }
         .sheet(isPresented: $showEditSheet) {
             editSheet
         }
+        .navigationTitle("")
     }
 
     // MARK: - Edit Sheet
@@ -58,80 +74,82 @@ struct LoginView: View {
 
     private var sidebarPanel: some View {
         VStack(spacing: 0) {
-            Spacer()
-
             brandingSection
+                .padding(.top, 60)
 
             Spacer()
 
-            actionButtons
-                .padding(.bottom, 20)
+            creditSection
         }
-        .frame(minWidth: 170, idealWidth: 180, maxWidth: 200)
-        .background(.thinMaterial)
-        .layoutPriority(0)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { onLoad() }
     }
 
     // MARK: - Branding
 
     private var brandingSection: some View {
-        VStack(spacing: 10) {
-            // App icon
+        VStack(spacing: 12) {
+            // Redis-style icon: red rounded rect with database symbol
             ZStack {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.96, green: 0.30, blue: 0.22),
-                                Color(red: 0.78, green: 0.13, blue: 0.10)
+                                Color(red: 0.88, green: 0.22, blue: 0.18),
+                                Color(red: 0.63, green: 0.10, blue: 0.07)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 72, height: 72)
+                    .frame(width: 64, height: 64)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.8)
                     )
                     .shadow(
-                        color: Color(red: 0.96, green: 0.30, blue: 0.22).opacity(0.40),
-                        radius: 14, x: 0, y: 6
+                        color: Color(red: 0.88, green: 0.22, blue: 0.18).opacity(0.40),
+                        radius: 12, x: 0, y: 5
                     )
 
-                Image(systemName: "server.rack")
-                    .font(.system(size: 30, weight: .semibold))
+                Image(systemName: "cylinder.split.1x2.fill")
+                    .font(.system(size: 26, weight: .semibold))
                     .foregroundStyle(.white)
-                    .symbolRenderingMode(.hierarchical)
             }
 
             VStack(spacing: 4) {
                 Text("Redis Pro")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.primary)
 
-                Text("Version \(appVersion)")
-                    .font(.system(size: 11))
+                Text(connectionsCountText)
+                    .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
+            .padding(.top, 4)
+
+            Rectangle()
+                .fill(Color(NSColor.separatorColor))
+                .frame(height: 0.5)
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
         }
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Action Buttons
+    // MARK: - Credit
 
-    private var actionButtons: some View {
-        VStack(spacing: 8) {
-            Button("New Server…") {
-                // Blank model in form; save after user fills details
-                favoriteViewModel.login.redisModel = RedisModel()
-                showEditSheet = true
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-        }
-        .padding(.horizontal, 14)
+    private var creditSection: some View {
+        Text("Credit by dungmv")
+            .font(.system(size: 10))
+            .foregroundStyle(.secondary)
+            .opacity(0.7)
+            .padding(.bottom, 20)
+    }
+
+    private var connectionsCountText: String {
+        let count = favoriteViewModel.table.datasource.count
+        return count == 1 ? "1 connection" : "\(count) connections"
     }
 
     // MARK: - Connection List Panel
@@ -141,45 +159,62 @@ struct LoginView: View {
             if favoriteViewModel.table.datasource.isEmpty {
                 emptyState
             } else {
-                let selection = Binding<Int>(
-                    get: { favoriteViewModel.table.selectIndex },
-                    set: { index in
-                        favoriteViewModel.table.selectionChange(index: index, indexes: index >= 0 ? [index] : [])
+                connectionList
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var connectionList: some View {
+        let datasource = favoriteViewModel.table.datasource
+        let selectedIndex = favoriteViewModel.table.selectIndex
+
+        return List(datasource.indices, id: \.self, selection: Binding<Int?>(
+            get: { selectedIndex >= 0 ? selectedIndex : nil },
+            set: { newIndex in
+                let idx = newIndex ?? -1
+                favoriteViewModel.table.selectionChange(index: idx, indexes: idx >= 0 ? [idx] : [])
+            }
+        )) { index in
+            ConnectionRow(model: datasource[index])
+                .tag(index)
+                .listRowInsets(EdgeInsets(top: 8, leading: 24, bottom: 8, trailing: 24))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .simultaneousGesture(
+                    TapGesture(count: 2).onEnded {
+                        favoriteViewModel.connect(index)
                     }
                 )
-
-                ConnectionTableView(
-                    datasource: favoriteViewModel.table.datasource,
-                    selectIndex: selection,
-                    onConnect: { index in
-                        favoriteViewModel.connect(index)
-                    },
-                    onEdit: { index in
+                .contextMenu {
+                    Button("Connect") { favoriteViewModel.connect(index) }
+                    Button("Edit") {
                         favoriteViewModel.table.selectionChange(index: index, indexes: [index])
                         showEditSheet = true
-                    },
-                    onDuplicate: { index in
-                        let model = favoriteViewModel.table.datasource[index]
+                    }
+                    Divider()
+                    Button("Duplicate") {
+                        let model = datasource[index]
                         var copy = model
                         copy.id = UUID().uuidString
                         copy.name = (model.name.isEmpty ? "New Connection" : model.name) + " Copy"
                         favoriteViewModel.save(copy)
-                    },
-                    onDelete: { index in
+                    }
+                    Divider()
+                    Button("Delete", role: .destructive) {
                         favoriteViewModel.deleteConfirm(index)
                     }
-                )
-            }
+                }
         }
-        .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
-        .layoutPriority(1)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
         VStack(spacing: 14) {
-            Image(systemName: "server.rack")
+            Image(systemName: "cylinder.split.1x2")
                 .font(.system(size: 40))
                 .foregroundStyle(.tertiary)
 
@@ -188,7 +223,7 @@ struct LoginView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                Text("Click \"New Server\" in the sidebar to add your first Redis connection.")
+                Text("Click \"+\" in the toolbar to add your first Redis connection.")
                     .font(.system(size: 12))
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.center)
@@ -198,11 +233,7 @@ struct LoginView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Helpers
-
-    private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-    }
+    // MARK: - Window Setup
 
     private func onLoad() {
         favoriteViewModel.getAll()
@@ -220,215 +251,28 @@ private struct ConnectionRow: View {
     let model: RedisModel
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Type icon
+        HStack(spacing: 16) {
             typeIcon
 
-            // Labels
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(model.name.isEmpty ? "New Connection" : model.name)
-                    .font(.system(size: 13, weight: .medium))
-                    .lineLimit(1)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.primary)
 
-                Text("\(model.host):\(model.port)")
+                Text("redis://\(model.host):\(model.port)")
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
             }
 
-            Spacer(minLength: 8)
+            Spacer()
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
     }
 
     @ViewBuilder
     private var typeIcon: some View {
-        ZStack {
-            Circle()
-                .fill(typeColor.opacity(0.14))
-                .frame(width: 36, height: 36)
-
-            Image(systemName: typeIconName)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(typeColor)
-        }
-    }
-
-    private var typeIconName: String {
-        model.connectionType == RedisConnectionTypeEnum.SSH.rawValue
-            ? "bolt.horizontal"
-            : "network"
-    }
-
-    private var typeColor: Color {
-        model.connectionType == RedisConnectionTypeEnum.SSH.rawValue
-            ? Color(red: 0.98, green: 0.62, blue: 0.22)
-            : Color(red: 0.20, green: 0.74, blue: 0.40)
-    }
-}
-
-// MARK: - Connection Table View (NSTableView wrapper)
-
-private struct ConnectionTableView: NSViewRepresentable {
-    let datasource: [RedisModel]
-    @Binding var selectIndex: Int
-    let onConnect: (Int) -> Void
-    let onEdit: (Int) -> Void
-    let onDuplicate: (Int) -> Void
-    let onDelete: (Int) -> Void
-
-    func makeNSView(context: Context) -> NSScrollView {
-        let scrollView = NSScrollView()
-        scrollView.hasVerticalScroller = true
-        scrollView.autohidesScrollers = true
-        scrollView.drawsBackground = false
-        scrollView.backgroundColor = .clear
-
-        let tableView = NSTableView()
-        tableView.headerView = nil
-        tableView.backgroundColor = .clear
-        tableView.style = .plain
-        tableView.usesAlternatingRowBackgroundColors = false
-        tableView.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
-        
-        let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("ConnectionColumn"))
-        column.resizingMask = .autoresizingMask
-        tableView.addTableColumn(column)
-
-        tableView.delegate = context.coordinator
-        tableView.dataSource = context.coordinator
-        tableView.doubleAction = #selector(Coordinator.doubleClickRow(_:))
-        tableView.target = context.coordinator
-
-        // Context Menu
-        let menu = NSMenu()
-        
-        let connectItem = NSMenuItem(title: "Connect", action: #selector(Coordinator.connectMenuAction(_:)), keyEquivalent: "")
-        connectItem.target = context.coordinator
-        menu.addItem(connectItem)
-        
-        let editItem = NSMenuItem(title: "Edit", action: #selector(Coordinator.editMenuAction(_:)), keyEquivalent: "")
-        editItem.target = context.coordinator
-        menu.addItem(editItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        
-        let duplicateItem = NSMenuItem(title: "Duplicate", action: #selector(Coordinator.duplicateMenuAction(_:)), keyEquivalent: "")
-        duplicateItem.target = context.coordinator
-        menu.addItem(duplicateItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        
-        let deleteItem = NSMenuItem(title: "Delete", action: #selector(Coordinator.deleteMenuAction(_:)), keyEquivalent: "")
-        deleteItem.target = context.coordinator
-        menu.addItem(deleteItem)
-        
-        tableView.menu = menu
-
-        scrollView.documentView = tableView
-        return scrollView
-    }
-
-    func updateNSView(_ nsView: NSScrollView, context: Context) {
-        guard let tableView = nsView.documentView as? NSTableView else { return }
-        
-        context.coordinator.parent = self
-        context.coordinator.datasource = datasource
-        
-        tableView.reloadData()
-
-        if selectIndex >= 0 && selectIndex < datasource.count {
-            if tableView.selectedRow != selectIndex {
-                tableView.selectRowIndexes(IndexSet(integer: selectIndex), byExtendingSelection: false)
-            }
-        } else {
-            tableView.deselectAll(nil)
-        }
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    class Coordinator: NSObject, NSTableViewDelegate, NSTableViewDataSource, NSMenuItemValidation {
-        var parent: ConnectionTableView
-        var datasource: [RedisModel]
-        weak var tableView: NSTableView?
-
-        init(_ parent: ConnectionTableView) {
-            self.parent = parent
-            self.datasource = parent.datasource
-        }
-
-        func numberOfRows(in tableView: NSTableView) -> Int {
-            datasource.count
-        }
-
-        func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-            self.tableView = tableView
-            guard row >= 0 && row < datasource.count else { return nil }
-            let model = datasource[row]
-            
-            let identifier = NSUserInterfaceItemIdentifier("ConnectionCell")
-            var hostingView = tableView.makeView(withIdentifier: identifier, owner: self) as? NSHostingView<ConnectionRow>
-
-            let cellView = ConnectionRow(model: model)
-
-            if let hostingView = hostingView {
-                hostingView.rootView = cellView
-                return hostingView
-            } else {
-                let newHostingView = NSHostingView(rootView: cellView)
-                newHostingView.identifier = identifier
-                return newHostingView
-            }
-        }
-
-        func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-            return 50
-        }
-
-        func tableViewSelectionDidChange(_ notification: Notification) {
-            guard let tableView = notification.object as? NSTableView else { return }
-            let selectedRow = tableView.selectedRow
-            DispatchQueue.main.async {
-                if self.parent.selectIndex != selectedRow {
-                    self.parent.selectIndex = selectedRow
-                }
-            }
-        }
-
-        @objc func doubleClickRow(_ sender: AnyObject) {
-            guard let tableView = sender as? NSTableView else { return }
-            let clickedRow = tableView.clickedRow
-            guard clickedRow >= 0 && clickedRow < datasource.count else { return }
-            parent.onConnect(clickedRow)
-        }
-
-        @objc func connectMenuAction(_ sender: AnyObject) {
-            guard let clickedRow = tableView?.clickedRow, clickedRow >= 0 && clickedRow < datasource.count else { return }
-            parent.onConnect(clickedRow)
-        }
-
-        @objc func editMenuAction(_ sender: AnyObject) {
-            guard let clickedRow = tableView?.clickedRow, clickedRow >= 0 && clickedRow < datasource.count else { return }
-            parent.onEdit(clickedRow)
-        }
-
-        @objc func duplicateMenuAction(_ sender: AnyObject) {
-            guard let clickedRow = tableView?.clickedRow, clickedRow >= 0 && clickedRow < datasource.count else { return }
-            parent.onDuplicate(clickedRow)
-        }
-
-        @objc func deleteMenuAction(_ sender: AnyObject) {
-            guard let clickedRow = tableView?.clickedRow, clickedRow >= 0 && clickedRow < datasource.count else { return }
-            parent.onDelete(clickedRow)
-        }
-
-        func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-            guard let tableView = tableView else { return false }
-            return tableView.clickedRow >= 0 && tableView.clickedRow < datasource.count
-        }
+        Image(systemName: "cylinder.split.1x2")
+            .font(.system(size: 22))
+            .foregroundStyle(.secondary)
+            .frame(width: 32, height: 32)
     }
 }

@@ -39,12 +39,7 @@ struct RedisValueHeaderView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .background(.thinMaterial)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(Color(NSColor.separatorColor))
-                .frame(height: 0.5)
-        }
+        .glassEffect(in: .rect)
     }
 
     private var ttlView: some View {

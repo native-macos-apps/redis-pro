@@ -24,8 +24,6 @@ struct RedisSystemView: View {
             RedisConfigView(viewModel: viewModel.redisConfig)
         case .LUA:
             LuaView(viewModel: viewModel.lua)
-        case .KEYS_DEL:
-            EmptyView()
         }
     }
 }

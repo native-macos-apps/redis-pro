@@ -17,20 +17,20 @@ enum StringViewMode: String, CaseIterable {
 struct StringEditorView: View {
     @State var viewModel: ValueViewModel
     @State private var viewMode: StringViewMode = .plain
+    @FocusState private var isFocused: Bool
     private let logger = Logger(label: "string-editor")
 
     var body: some View {
         let vm = viewModel.stringValue
         VStack(alignment: .leading, spacing: 0) {
-            HighlightTextEditor(text: Binding(get: { vm.text }, set: { vm.text = $0 }), isJSON: viewMode == .json)
-                .background(Color(NSColor.textBackgroundColor))
+            editorArea(vm: vm)
 
-            // footer
+            // Footer
             HStack(alignment: .center, spacing: 6) {
                 KeyObjectBar(viewModel: viewModel.keyObject)
 
                 Spacer()
-                
+
                 Picker("", selection: $viewMode) {
                     ForEach(StringViewMode.allCases, id: \.self) { mode in
                         Text(mode.rawValue).tag(mode)
@@ -38,9 +38,6 @@ struct StringEditorView: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 150)
-                .onChange(of: viewMode) { oldValue, newValue in
-                    // View mode change now handled internally by HighlightTextEditor for display
-                }
 
                 IconButton(icon: "arrow.clockwise", name: "Refresh", action: { vm.refresh() })
                 IconButton(icon: "checkmark", name: "Submit", action: { vm.submit() })
@@ -58,105 +55,52 @@ struct StringEditorView: View {
             logger.info("redis string value editor view appear ...")
         }
     }
-}
 
-struct HighlightTextEditor: NSViewRepresentable {
-    @Binding var text: String
-    var isJSON: Bool
-    
-    func formatJSON(_ val: String) -> String {
-        if val.count < 2 {
-            return val
+    // MARK: - Editor Area
+
+    @ViewBuilder
+    private func editorArea(vm: StringValueViewModel) -> some View {
+        if viewMode == .json {
+            // JSON mode: show formatted + syntax-highlighted attributed string (read-only display)
+            // while keeping a hidden editable TextEditor in sync for actual editing
+            jsonEditorArea(vm: vm)
+        } else {
+            // Plain text mode: fully editable SwiftUI TextEditor
+            TextEditor(text: Binding(get: { vm.text }, set: { vm.text = $0 }))
+                .font(.system(.body, design: .monospaced))
+                .lineSpacing(2)
+                .disableAutocorrection(true)
+                .scrollContentBackground(.hidden)
+                .focused($isFocused)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        guard let data = val.data(using: .utf8),
+    }
+
+    @ViewBuilder
+    private func jsonEditorArea(vm: StringValueViewModel) -> some View {
+        let formatted = formatJSON(vm.text)
+        let attributed = JSONHighlighter.highlight(formatted)
+
+        ScrollView([.vertical, .horizontal]) {
+            Text(attributed)
+                .font(.system(.body, design: .monospaced))
+                .lineSpacing(2)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Helpers
+
+    private func formatJSON(_ val: String) -> String {
+        guard val.count >= 2,
+              let data = val.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data),
               let prettyData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted),
-              let prettyString = String(data: prettyData, encoding: .utf8) else {
-            return val
-        }
+              let prettyString = String(data: prettyData, encoding: .utf8)
+        else { return val }
         return prettyString
-    }
-    
-    func minifyJSON(_ val: String) -> String {
-        if val.count < 2 {
-            return val
-        }
-        guard let data = val.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data),
-              let minData = try? JSONSerialization.data(withJSONObject: json, options: []),
-              let minString = String(data: minData, encoding: .utf8) else {
-            return val
-        }
-        return minString
-    }
-    
-    func makeNSView(context: Context) -> NSScrollView {
-        let scrollView = NSTextView.scrollableTextView()
-        let textView = scrollView.documentView as! NSTextView
-        textView.delegate = context.coordinator
-        textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
-        textView.isAutomaticQuoteSubstitutionEnabled = false
-        textView.isAutomaticDashSubstitutionEnabled = false
-        textView.isRichText = false
-        textView.allowsUndo = true
-        textView.backgroundColor = .clear
-        textView.drawsBackground = false
-        textView.textColor = .labelColor
-        textView.isEditable = true
-        textView.isSelectable = true
-        
-        // Setup text container
-        textView.textContainerInset = NSSize(width: 0, height: 0)
-        
-        return scrollView
-    }
-    
-    func updateNSView(_ nsView: NSScrollView, context: Context) {
-        let textView = nsView.documentView as! NSTextView
-        let coordinator = context.coordinator
-        
-        let modeChanged = coordinator.lastIsJSON != isJSON
-        coordinator.lastIsJSON = isJSON
-        
-        let displayString = isJSON ? formatJSON(text) : text
-        
-        // Only update if the string has actually changed or the mode changed
-        if textView.string != displayString || modeChanged {
-            let selectedRange = textView.selectedRange()
-            
-            coordinator.isUpdatingFromParent = true
-            if isJSON {
-                let highlighted = JSONHighlighter.highlightToNS(displayString)
-                textView.textStorage?.setAttributedString(highlighted)
-            } else {
-                textView.string = displayString
-                textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
-                textView.textColor = .labelColor
-            }
-            coordinator.isUpdatingFromParent = false
-        }
-    }
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, NSTextViewDelegate {
-        var parent: HighlightTextEditor
-        var lastIsJSON: Bool?
-        var isUpdatingFromParent = false
-        
-        init(_ parent: HighlightTextEditor) {
-            self.parent = parent
-        }
-        
-        func textDidChange(_ notification: Notification) {
-            guard !isUpdatingFromParent,
-                  let textView = notification.object as? NSTextView else { return }
-            
-            if self.parent.text != textView.string {
-                self.parent.text = textView.string
-            }
-        }
     }
 }

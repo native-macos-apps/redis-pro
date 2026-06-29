@@ -60,14 +60,7 @@ struct SearchBar: View {
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(NSColor.controlBackgroundColor))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(isFocused ? Color.accentColor : Color(NSColor.separatorColor), lineWidth: isFocused ? 1.5 : 0.5)
-            )
+            .glassEffect(.regular.tint(isFocused ? .accentColor.opacity(0.15) : .clear).interactive(), in: .rect(cornerRadius: 6))
             .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isFocused)
         }
         .zIndex(10)
@@ -108,11 +101,7 @@ struct SearchBar: View {
                         Divider().padding(.horizontal, 8)
                     }
                 }
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .strokeBorder(Color(NSColor.separatorColor), lineWidth: 0.5)
-                )
+                .glassEffect(in: .rect(cornerRadius: 6))
                 .zIndex(100)
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .move(edge: .top)),

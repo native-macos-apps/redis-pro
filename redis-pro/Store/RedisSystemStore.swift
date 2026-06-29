@@ -11,7 +11,6 @@ import Foundation
 import Observation
 
 enum RedisSystemViewTypeEnum {
-    case KEYS_DEL
     case REDIS_INFO
     case REDIS_CONFIG
     case CLIENT_LIST

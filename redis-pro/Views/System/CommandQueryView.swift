@@ -223,7 +223,6 @@ struct CommandQueryView: View {
                                 Image(systemName: "play.fill")
                                     .font(.system(size: 10))
                                 Text("Execute Selected")
-                                Text("⌘↩")
                                     .font(.system(.caption, design: .monospaced))
                                     .opacity(0.8)
                             }
@@ -355,7 +354,7 @@ struct CommandDocSidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            HStack(spacing: 6) {
+            HStack() {
                 Image(systemName: "book.closed")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Cocoa
+import SwiftUI
 
 struct RedisKeyModel: Identifiable, Sendable, Hashable {
     var key: String = ""
@@ -46,20 +46,15 @@ struct RedisKeyModel: Identifiable, Sendable, Hashable {
 }
 
 extension RedisKeyModel {
-    var textColor: NSColor {
+    /// SwiftUI color representing this key type — use directly with `.foregroundStyle(model.typeColor)`.
+    var typeColor: Color {
         switch type {
-        case RedisKeyTypeEnum.STRING.rawValue:
-            return NSColor.systemBlue
-        case RedisKeyTypeEnum.HASH.rawValue:
-            return NSColor.systemPink
-        case RedisKeyTypeEnum.LIST.rawValue:
-            return NSColor.systemOrange
-        case RedisKeyTypeEnum.SET.rawValue:
-            return NSColor.systemGreen
-        case RedisKeyTypeEnum.ZSET.rawValue:
-            return NSColor.systemTeal
-        default:
-            return NSColor.systemBrown
+        case RedisKeyTypeEnum.STRING.rawValue:  return .blue
+        case RedisKeyTypeEnum.HASH.rawValue:    return .pink
+        case RedisKeyTypeEnum.LIST.rawValue:    return .orange
+        case RedisKeyTypeEnum.SET.rawValue:     return .green
+        case RedisKeyTypeEnum.ZSET.rawValue:    return .teal
+        default:                                return .brown
         }
     }
 }

@@ -34,6 +34,10 @@ final class RedisKeysViewModel {
 
     private let redisInstance: RedisInstanceModel
 
+    var redisModel: RedisModel {
+        redisInstance.redisModel
+    }
+
     // Debounce/cancel support
     private var searchTask: Task<Void, Never>?
     private var getKeysTask: Task<Void, Never>?

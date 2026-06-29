@@ -52,13 +52,6 @@ struct MPasswordField: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color(NSColor.controlBackgroundColor))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 4)
-                .stroke(isFocused ? Color.accentColor : Color(NSColor.separatorColor), lineWidth: isFocused ? 1.5 : 0.5)
-        )
+        .glassEffect(.regular.tint(isFocused ? .accentColor.opacity(0.15) : .clear).interactive(), in: .rect(cornerRadius: 6))
     }
 }

@@ -28,13 +28,14 @@ struct redis_proApp: App {
 
 
     var body: some Scene {
-        Window("Login", id: "login-window") {
+        Window("", id: "login-window") {
             if let appVM = rootViewModel.windows.first {
                 IndexView(viewModel: appVM)
                     .preferredColorScheme(preferredColorScheme)
             }
         }
-        .defaultSize(width: 600, height: 420)
+        .defaultSize(width: 680, height: 460)
+        .windowStyle(.hiddenTitleBar)
 
         WindowGroup("Workspace", id: "workspace-window", for: String.self) { $windowId in
             if let id = windowId, let appVM = rootViewModel.window(id: id) {
@@ -43,6 +44,7 @@ struct redis_proApp: App {
             }
         }
         .defaultSize(width: 1000, height: 650)
+        .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(replacing: CommandGroupPlacement.toolbar) {
                 Button(action: openNewWindow) {
@@ -58,7 +60,9 @@ struct redis_proApp: App {
         WindowGroup("AboutView") {
             AboutView()
                 .preferredColorScheme(preferredColorScheme)
-        }.handlesExternalEvents(matching: Set(arrayLiteral: "AboutView"))
+        }
+        .handlesExternalEvents(matching: Set(arrayLiteral: "AboutView"))
+        .windowToolbarStyle(.unifiedCompact)
 
         Settings {
             SettingsView(viewModel: rootViewModel.windows.first?.settings ?? SettingsViewModel())

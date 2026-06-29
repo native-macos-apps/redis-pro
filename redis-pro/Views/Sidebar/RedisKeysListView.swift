@@ -16,16 +16,20 @@ struct RedisKeysListView: View {
     private static let logger = Logger(label: "redis-key-list-view")
 
     var body: some View {
-        HSplitView {
-            // Sidebar
+        NavigationSplitView {
             sidebarPanel
-                .frame(minWidth: 260, idealWidth: 320, maxWidth: 440)
-                .layoutPriority(0)
-
-            // Content
+                .navigationSplitViewColumnWidth(min: 260, ideal: 320, max: 440)
+        } detail: {
             contentPanel
-                .frame(minWidth: 560, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
-                .layoutPriority(1)
+        }
+        .navigationSplitViewStyle(.balanced)
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                DatabasePicker(viewModel: viewModel.database_)
+            }
+            ToolbarItem(placement: .principal) {
+                connectionInfoBadge
+            }
         }
     }
 
@@ -74,20 +78,12 @@ struct RedisKeysListView: View {
             onChange: { viewModel.searchChange($0) }
         )
         .padding(.horizontal, 8)
-        .padding(.top, 8)
         .padding(.bottom, 6)
-        .background(.thinMaterial)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(Color(NSColor.separatorColor))
-                .frame(height: 0.5)
-        }
     }
 
     private var sidebarFooter: some View {
         HStack(alignment: .center, spacing: 6) {
             Menu {
-                Button("Keys Del")     { viewModel.redisSystem.setSystemView(.KEYS_DEL) }
                 Button("Redis Info")   { viewModel.redisSystem.setSystemView(.REDIS_INFO) }
                 Button("Redis Config") { viewModel.redisSystem.setSystemView(.REDIS_CONFIG) }
                 Button("Clients")      { viewModel.redisSystem.setSystemView(.CLIENT_LIST) }
@@ -110,16 +106,8 @@ struct RedisKeysListView: View {
             MIcon(icon: "plus") { viewModel.addNew() }
 
             Spacer(minLength: 0)
-
-            DatabasePicker(viewModel: viewModel.database_)
         }
         .frame(height: 30)
-        .background(.thinMaterial)
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(Color(NSColor.separatorColor))
-                .frame(height: 0.5)
-        }
     }
 
     // MARK: - Content
@@ -138,5 +126,34 @@ struct RedisKeysListView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Connection Info Badge
+
+    private var connectionInfoBadge: some View {
+        HStack() {
+            Circle()
+                .fill(Color.green)
+                .frame(width: 6, height: 6)
+                .shadow(color: Color.green.opacity(0.6), radius: 2)
+            
+            Image(systemName: viewModel.redisModel.connectionType.lowercased() == "ssh" ? "lock.fill" : "network")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.secondary)
+            
+            HStack(spacing: 4) {
+                Text(viewModel.redisModel.name)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.primary)
+                
+                Text("•")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.tertiary)
+                
+                Text("\(viewModel.redisModel.host):\(String(viewModel.redisModel.port))")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+        }.padding(.horizontal)
     }
 }

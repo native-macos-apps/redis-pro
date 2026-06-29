@@ -25,6 +25,6 @@ struct DatabasePicker: View {
         .menuStyle(BorderlessButtonMenuStyle())
         .onAppear {
             viewModel.initial()
-        }
+        }.padding(.horizontal)
     }
 }

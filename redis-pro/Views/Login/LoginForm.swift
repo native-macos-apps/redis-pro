@@ -38,6 +38,7 @@ struct LoginForm: View {
             footer
         }
         .frame(width: 480, height: useSSH ? 560 : 400)
+        .glassEffect(in: .rect(cornerRadius: 12))
         .animation(.easeInOut(duration: 0.22), value: useSSH)
     }
 
@@ -76,6 +77,7 @@ struct LoginForm: View {
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
         .animation(.easeInOut(duration: 0.22), value: useSSH)
     }
 
