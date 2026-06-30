@@ -84,8 +84,6 @@ struct TreeRow: View {
     let node: RedisKeyNode
     let selectedId: String?
 
-    @State private var isHovered: Bool = false
-
     private var isSelected: Bool {
         selectedId == node.id
     }
@@ -99,7 +97,6 @@ struct TreeRow: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .onHover { isHovered = $0 }
         .contextMenu {
             Button("Copy Key Name") {
                 PasteboardHelper.copy(node.fullName)
@@ -127,7 +124,7 @@ struct TreeRow: View {
         HStack {
             Image(systemName: "folder.fill")
                 .font(.system(.body))
-                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.secondary)
 
             Text(node.name)
                 .font(.system(.body))
@@ -136,9 +133,7 @@ struct TreeRow: View {
             Spacer(minLength: 4)
 
             Text("\(node.keyCount)")
-                .font(.system(.caption))
-                .padding(.horizontal, 4)
-                .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 3))
+                .font(.system(.caption))onHover
         }
     }
 
