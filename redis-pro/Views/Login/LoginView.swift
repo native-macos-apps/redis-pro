@@ -165,7 +165,6 @@ struct LoginView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
     }
 
     private var connectionList: some View {
@@ -203,7 +202,6 @@ struct LoginView: View {
                 }
         }
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)
     }
 
     // MARK: - Empty State
@@ -253,14 +251,10 @@ private struct ConnectionRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(model.name.isEmpty ? "New Connection" : model.name)
                     .font(.system(.body))
-                    .foregroundStyle(.primary)
 
                 Text("redis://\(model.host):\(model.port)")
                     .font(.system(.caption))
-                    .foregroundStyle(.secondary)
             }
-
-            Spacer()
         }
     }
 

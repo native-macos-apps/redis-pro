@@ -38,8 +38,6 @@ struct RedisKeysTreeView: View {
                 }
             }
             .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .environment(\.defaultMinListRowHeight, 20)
         }
     }
 
@@ -101,7 +99,6 @@ struct TreeRow: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
         .onHover { isHovered = $0 }
         .contextMenu {
             Button("Copy Key Name") {
@@ -130,7 +127,6 @@ struct TreeRow: View {
         HStack {
             Image(systemName: "folder.fill")
                 .font(.system(.body))
-                .foregroundStyle(isSelected ? Color.primary : Color.secondary)
                 .symbolRenderingMode(.hierarchical)
 
             Text(node.name)
