@@ -30,6 +30,7 @@ struct LoginView: View {
             sidebarPanel
                 .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
         } detail: {
+            Divider()
             connectionListPanel
         }
         .navigationSplitViewStyle(.balanced)
@@ -47,7 +48,7 @@ struct LoginView: View {
         .sheet(isPresented: $showEditSheet) {
             editSheet
         }
-        .navigationTitle("")
+//        .navigationTitle("")
     }
 
     // MARK: - Edit Sheet
@@ -155,7 +156,7 @@ struct LoginView: View {
     // MARK: - Connection List Panel
 
     private var connectionListPanel: some View {
-        Group {
+        VStack() {
             if favoriteViewModel.table.datasource.isEmpty {
                 emptyState
             } else {
@@ -163,6 +164,8 @@ struct LoginView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
 
     private var connectionList: some View {
@@ -178,14 +181,7 @@ struct LoginView: View {
         )) { index in
             ConnectionRow(model: datasource[index])
                 .tag(index)
-                .listRowInsets(EdgeInsets(top: 8, leading: 24, bottom: 8, trailing: 24))
-                .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                .simultaneousGesture(
-                    TapGesture(count: 2).onEnded {
-                        favoriteViewModel.connect(index)
-                    }
-                )
                 .contextMenu {
                     Button("Connect") { favoriteViewModel.connect(index) }
                     Button("Edit") {
@@ -256,11 +252,11 @@ private struct ConnectionRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(model.name.isEmpty ? "New Connection" : model.name)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(.body))
                     .foregroundStyle(.primary)
 
                 Text("redis://\(model.host):\(model.port)")
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.system(.caption))
                     .foregroundStyle(.secondary)
             }
 
