@@ -100,10 +100,24 @@ struct RedisKeysListView: View {
             .frame(width: 24)
             .padding(.leading, 10)
 
-            MIcon(icon: "arrow.clockwise", fontSize: 12) { viewModel.refresh() }
-                .help("Refresh keys")
+            Button {
+                viewModel.refresh()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 12, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+            }
+            .buttonStyle(.plain)
+            .help("Refresh keys")
 
-            MIcon(icon: "plus") { viewModel.addNew() }
+            Button {
+                viewModel.addNew()
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 11, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+            }
+            .buttonStyle(.plain)
 
             Spacer(minLength: 0)
         }

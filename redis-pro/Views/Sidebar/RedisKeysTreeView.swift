@@ -133,7 +133,7 @@ struct TreeRow: View {
             Spacer(minLength: 4)
 
             Text("\(node.keyCount)")
-                .font(.system(.caption))onHover
+                .font(.system(.caption))
         }
     }
 
