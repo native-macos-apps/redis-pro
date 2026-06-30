@@ -35,15 +35,6 @@ struct RedisValueHeaderView: View {
             )
 
             // TTL field
-            ttlView
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .glassEffect(in: .rect)
-    }
-
-    private var ttlView: some View {
-        HStack(spacing: 6) {
             FormItemInt(
                 label: "TTL(s)",
                 labelWidth: 46,
@@ -54,31 +45,9 @@ struct RedisValueHeaderView: View {
             .disabled(viewModel.isNew)
             .help("TTL in seconds, -1 = no expiry")
             .frame(width: 180)
-
-            // TTL indicator chip
-            if !viewModel.isNew {
-                ttlBadge
-            }
         }
-    }
-
-    @ViewBuilder
-    private var ttlBadge: some View {
-        let ttl = viewModel.ttl
-        if ttl == -1 {
-            Label("No Expiry", systemImage: "infinity")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.green)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background(.green.opacity(0.1), in: Capsule())
-        } else if ttl > 0 {
-            Label("\(ttl)s", systemImage: "clock")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(ttl < 60 ? Color.red : Color.orange)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background((ttl < 60 ? Color.red : Color.orange).opacity(0.1), in: Capsule())
-        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .glassEffect(in: .rect)
     }
 }
