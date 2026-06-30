@@ -28,16 +28,12 @@ struct RedisKeysTreeView: View {
             List(selection: selection) {
                 OutlineGroup(viewModel.redisKeyNodes, children: \.children) { node in
                     TreeRow(viewModel: viewModel, node: node, selectedId: viewModel.selectedKeyId)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                        .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                         .tag(node.id as String?)
                 }
 
                 if !viewModel.table.datasource.isEmpty && (viewModel.hasMoreKeys || viewModel.isLoadingMore) {
                     LoadMoreRow(viewModel: viewModel)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 8, trailing: 12))
-                        .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
             }
@@ -49,17 +45,9 @@ struct RedisKeysTreeView: View {
 
     private var headerView: some View {
         HStack {
-            Text("KEYS")
-                .font(.system(.caption))
-                .foregroundStyle(.secondary)
-                .kerning(0.8)
+            Text("KEYS").font(.system(.caption))
             Spacer()
-            Text("\(viewModel.dbsize)")
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                .foregroundStyle(.tertiary)
-                .padding(.horizontal, 5)
-                .padding(.vertical, 1)
-                .background(.ultraThinMaterial, in: Capsule())
+            Text("\(viewModel.dbsize)").font(.system(.caption))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
