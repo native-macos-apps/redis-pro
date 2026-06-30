@@ -17,7 +17,9 @@ struct SetEditorView: View {
         let vm = viewModel.setValue
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 4) {
-                IconButton(icon: "plus", name: "Add", action: { vm.addNew() })
+                Button(action: { vm.addNew() }) {
+                    Label("Add", systemImage: "plus")
+                }
 
                 SearchBar(placeholder: "Search element...", onCommit: { vm.search($0) })
                 PageBar(viewModel: vm.page)
@@ -54,7 +56,9 @@ struct SetEditorView: View {
             HStack(alignment: .center, spacing: 0) {
                 KeyObjectBar(viewModel: viewModel.keyObject)
                 Spacer()
-                IconButton(icon: "arrow.clockwise", name: "Refresh", action: { vm.refresh() })
+                Button(action: { vm.refresh() }) {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
                     .padding(.trailing, 8)
             }
             .frame(height: 30)

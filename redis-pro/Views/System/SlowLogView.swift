@@ -62,7 +62,9 @@ struct SlowLogView: View {
                     .font(.system(size: 10, weight: .regular))
                     .foregroundStyle(.secondary)
                     .help("REDIS_SLOW_LOG_SIZE")
-                IconButton(icon: "arrow.clockwise", name: "Refresh", action: { viewModel.refresh() })
+                Button(action: { viewModel.refresh() }) {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
             }
             .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
         }

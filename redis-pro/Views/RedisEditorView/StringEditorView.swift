@@ -39,17 +39,15 @@ struct StringEditorView: View {
                 .pickerStyle(.segmented)
                 .frame(width: 150)
 
-                IconButton(icon: "arrow.clockwise", name: "Refresh", action: { vm.refresh() })
-                IconButton(icon: "checkmark", name: "Submit", action: { vm.submit() })
+                Button(action: { vm.refresh() }) {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                Button(action: { vm.submit() }) {
+                    Label("Submit", systemImage: "checkmark")
+                }
                     .padding(.trailing, 8)
             }
             .frame(height: 30)
-            .background(.thinMaterial)
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Color(NSColor.separatorColor))
-                    .frame(height: 0.5)
-            }
         }
         .onAppear {
             logger.info("redis string value editor view appear ...")
