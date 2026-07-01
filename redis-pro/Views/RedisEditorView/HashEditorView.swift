@@ -75,15 +75,10 @@ struct HashEditorView: View {
                 Button(action: { vm.refresh() }) {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
-                    .padding(.trailing, 8)
             }
             .frame(height: 30)
-            .background(.thinMaterial)
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Color(NSColor.separatorColor))
-                    .frame(height: 0.5)
-            }
+            .background(.ultraThinMaterial)
+            .padding(.horizontal, 16)
         }
         .onAppear {
             logger.info("redis hash editor view appear ...")

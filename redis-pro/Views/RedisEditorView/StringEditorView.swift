@@ -45,8 +45,9 @@ struct StringEditorView: View {
                 Button(action: { vm.submit() }) {
                     Label("Submit", systemImage: "checkmark")
                 }
-                    .padding(.trailing, 8)
             }
+            .padding(.horizontal, 16)
+            .background(.ultraThinMaterial)
             .frame(height: 30)
         }
         .onAppear {
