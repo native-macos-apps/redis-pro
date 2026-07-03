@@ -45,7 +45,6 @@ struct SlowLogView: View {
 
                 Spacer()
                 Button("Reset") { viewModel.reset() }
-                    .buttonStyle(.bordered)
                     .help("REDIS_SLOW_LOG_RESET")
             }
 

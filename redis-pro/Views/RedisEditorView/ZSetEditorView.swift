@@ -102,7 +102,6 @@ struct ZSetEditorView: View {
                     Button("Close") {
                         vm.geoModalVisible = false
                     }
-                    .buttonStyle(.bordered)
                     .keyboardShortcut(.cancelAction)
                 }
                 .padding(.horizontal, 16)

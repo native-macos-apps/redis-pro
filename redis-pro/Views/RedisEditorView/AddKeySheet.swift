@@ -88,7 +88,6 @@ struct AddKeySheet: View {
                 Button("Cancel") {
                     dismiss()
                 }
-                .buttonStyle(.bordered)
                 .keyboardShortcut(.cancelAction)
 
                 Button {

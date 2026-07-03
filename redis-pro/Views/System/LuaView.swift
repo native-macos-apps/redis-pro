@@ -21,7 +21,6 @@ struct LuaView: View {
                 Text("Eval Lua Script")
                 Spacer()
                 Button("Script Flush") { viewModel.scriptFlush() }
-                    .buttonStyle(.bordered)
             }
 
             VSplitView {
@@ -33,7 +32,6 @@ struct LuaView: View {
                     HStack(alignment: .center, spacing: 8) {
                         Spacer()
                         Button("Eval") { viewModel.eval() }
-                            .buttonStyle(.bordered)
                             .keyboardShortcut(.defaultAction)
                     }
                     .padding(EdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4))

@@ -57,7 +57,6 @@ struct ModalView<Content: View>: View {
             HStack(spacing: 8) {
                 Spacer()
                 Button("Cancel", action: cancel)
-                    .buttonStyle(.bordered)
                     .keyboardShortcut(.cancelAction)
                 Button("Submit", action: submit)
                     .buttonStyle(.borderedProminent)
