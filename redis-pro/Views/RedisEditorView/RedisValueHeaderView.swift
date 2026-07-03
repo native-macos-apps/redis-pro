@@ -16,25 +16,25 @@ struct RedisValueHeaderView: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            // Key field
+            // Key field — always read-only in detail view (new keys use AddKeySheet)
             FormItemText(
                 label: "Key",
                 labelWidth: 36,
                 required: true,
-                editable: viewModel.isNew,
+                editable: false,
                 value: Binding(get: { viewModel.key }, set: { viewModel.key = $0 })
             )
             .frame(maxWidth: .infinity)
             .font(.system(.body, design: .monospaced))
 
-            // Type picker
+            // Type picker — always disabled in detail view
             RedisKeyTypePicker(
                 label: "Type",
                 value: Binding(get: { viewModel.type }, set: { viewModel.type = $0 }),
-                disabled: !viewModel.isNew
+                disabled: true
             )
 
-            // TTL field
+            // TTL field — always active in detail view
             FormItemInt(
                 label: "TTL(s)",
                 labelWidth: 46,
@@ -42,7 +42,6 @@ struct RedisValueHeaderView: View {
                 suffix: "square.and.pencil",
                 onCommit: { viewModel.submit() }
             )
-            .disabled(viewModel.isNew)
             .help("TTL in seconds, -1 = no expiry")
             .frame(width: 180)
         }

@@ -31,6 +31,19 @@ struct RedisKeysListView: View {
                 connectionInfoBadge
             }
         }
+        .sheet(isPresented: addKeySheetBinding) {
+            AddKeySheet(viewModel: viewModel.addKey)
+        }
+
+    }
+
+    // MARK: - Add Key Sheet Binding
+
+    private var addKeySheetBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.addKey.isVisible },
+            set: { viewModel.addKey.isVisible = $0 }
+        )
     }
 
     // MARK: - Sidebar

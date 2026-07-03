@@ -30,8 +30,9 @@ struct MIntField: View {
             .textFieldStyle(.plain)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
-            .glassEffect(.regular.tint(isFocused ? .accentColor.opacity(0.15) : .clear).interactive(), in: .rect(cornerRadius: 6))
             .focused($isFocused)
+            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+            .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isFocused)
     }
 
     func doCommit() {
