@@ -12,40 +12,80 @@ import Logging
 struct RedisValueHeaderView: View {
 
     @State var viewModel: KeyViewModel
+    @State private var isEditingTTL = false
+    @State private var tempTTL: Int = -1
+    
     private static let logger = Logger(label: "redis-value-header")
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            // Key field — always read-only in detail view (new keys use AddKeySheet)
-            FormItemText(
-                label: "Key",
-                labelWidth: 36,
-                required: true,
-                editable: false,
-                value: Binding(get: { viewModel.key }, set: { viewModel.key = $0 })
-            )
-            .frame(maxWidth: .infinity)
-            .font(.system(.body, design: .monospaced))
+            Text(viewModel.key)
+                .textSelection(.enabled)
+                .font(.body)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .opacity(0.8)
+                .font(.system(.body, design: .monospaced))
+            
+            // TTL display with click-to-edit popover
+            HStack(spacing: 4) {
+                Text("TTL:")
+                    .font(.body)
 
-            // Type picker — always disabled in detail view
-            RedisKeyTypePicker(
-                label: "Type",
-                value: Binding(get: { viewModel.type }, set: { viewModel.type = $0 }),
-                disabled: true
-            )
-
-            // TTL field — always active in detail view
-            FormItemInt(
-                label: "TTL(s)",
-                labelWidth: 46,
-                value: Binding(get: { viewModel.ttl }, set: { viewModel.ttl = $0 }),
-                suffix: "square.and.pencil",
-                onCommit: { viewModel.submit() }
-            )
-            .help("TTL in seconds, -1 = no expiry")
-            .frame(width: 180)
+                Button(action: {
+                    tempTTL = viewModel.ttl
+                    isEditingTTL = true
+                }) {
+                    HStack(spacing: 4) {
+                        Text(viewModel.ttl == -1 ? "-1 (Never)" : "\(viewModel.ttl)s")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Image(systemName: "pencil")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                }
+                .buttonStyle(.plain)
+                .help("Click to edit TTL")
+                .popover(isPresented: $isEditingTTL, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Edit TTL (seconds)")
+                            .font(.headline)
+                        
+                        TextField("", value: $tempTTL, formatter: NumberHelper.intFormatter)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 120)
+                            .onSubmit {
+                                commitTTL()
+                            }
+                        
+                        HStack {
+                            Button("Confirm") {
+                                commitTTL()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            
+                            Button("Cancel") {
+                                isEditingTTL = false
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    .padding(12)
+                    .frame(width: 200)
+                }
+            }
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
+    }
+
+    private func commitTTL() {
+        viewModel.ttl = tempTTL
+        viewModel.submit()
+        isEditingTTL = false
     }
 }
