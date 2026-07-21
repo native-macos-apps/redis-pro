@@ -80,12 +80,12 @@ struct StringEditorView: View {
         let formatted = formatJSON(vm.text)
         let attributed = JSONHighlighter.highlight(formatted)
 
-        ScrollView([.vertical, .horizontal]) {
+        ScrollView(.vertical) {
             Text(attributed)
                 .font(.system(.body, design: .monospaced))
                 .lineSpacing(2)
                 .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
                 .padding(8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
