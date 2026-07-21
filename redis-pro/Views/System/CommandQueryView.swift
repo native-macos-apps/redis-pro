@@ -302,14 +302,14 @@ struct CommandQueryView: View {
                     .padding(.vertical, 8)
                     .background(.thinMaterial)
                 }
-                .frame(minHeight: 180, maxHeight: .infinity)
+//                .frame(minHeight: 180, maxHeight: .infinity)
             }
-            .frame(minWidth: 340)
+//            .frame(minWidth: 340)
             
             // ── Right: Command Docs Sidebar ─────────────────────────────
             if viewModel.showDocsSidebar {
                 CommandDocSidebarView(viewModel: viewModel)
-                    .frame(minWidth: 300, idealWidth: 380)
+//                    .frame(minWidth: 300, idealWidth: 380)
             }
         }
         .onChange(of: viewModel.currentDocCommand) { _, newCmd in
@@ -625,7 +625,7 @@ struct CommandSyntaxHintBar: View {
             HintSegment(id: i, text: formatArgText(arg))
         }
     }
-    
+
     // MARK: Body
     var body: some View {
         ScrollViewReader { proxy in

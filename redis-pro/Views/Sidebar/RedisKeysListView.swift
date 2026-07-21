@@ -30,6 +30,20 @@ struct RedisKeysListView: View {
             ToolbarItem(placement: .principal) {
                 connectionInfoBadge
             }
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button("Redis Info")   { viewModel.redisSystem.setSystemView(.REDIS_INFO) }
+                    Button("Redis Config") { viewModel.redisSystem.setSystemView(.REDIS_CONFIG) }
+                    Button("Clients")      { viewModel.redisSystem.setSystemView(.CLIENT_LIST) }
+                    Button("Slow Log")     { viewModel.redisSystem.setSystemView(.SLOW_LOG) }
+                    Button("Lua")          { viewModel.redisSystem.setSystemView(.LUA) }
+                } label: {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+                .menuStyle(.borderlessButton)
+            }
         }
         .sheet(isPresented: addKeySheetBinding) {
             AddKeySheet(viewModel: viewModel.addKey)
@@ -96,23 +110,6 @@ struct RedisKeysListView: View {
 
     private var sidebarFooter: some View {
         HStack(alignment: .center, spacing: 6) {
-            Menu {
-                Button("Redis Info")   { viewModel.redisSystem.setSystemView(.REDIS_INFO) }
-                Button("Redis Config") { viewModel.redisSystem.setSystemView(.REDIS_CONFIG) }
-                Button("Clients")      { viewModel.redisSystem.setSystemView(.CLIENT_LIST) }
-                Button("Slow Log")     { viewModel.redisSystem.setSystemView(.SLOW_LOG) }
-                Button("Lua")          { viewModel.redisSystem.setSystemView(.LUA) }
-                Divider()
-                Button("Flush DB", role: .destructive) { viewModel.flushDBConfirm() }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-            .menuStyle(.borderlessButton)
-            .frame(width: 24)
-            .padding(.leading, 10)
-
             Button {
                 viewModel.refresh()
             } label: {
@@ -122,6 +119,7 @@ struct RedisKeysListView: View {
             }
             .buttonStyle(.plain)
             .help("Refresh keys")
+            .padding(.leading, 10)
 
             Button {
                 viewModel.addNew()

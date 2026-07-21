@@ -48,27 +48,13 @@ struct LoginView: View {
         .sheet(isPresented: $showEditSheet) {
             editSheet
         }
-//        .navigationTitle("")
+        .navigationTitle("")
     }
 
     // MARK: - Edit Sheet
 
     private var editSheet: some View {
-        ZStack(alignment: .topTrailing) {
-            LoginForm(viewModel: favoriteViewModel.login)
-
-            Button {
-                showEditSheet = false
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 18))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.plain)
-            .padding(14)
-            .help("Close")
-        }
+        LoginForm(viewModel: favoriteViewModel.login)
     }
 
     // MARK: - Left Sidebar
