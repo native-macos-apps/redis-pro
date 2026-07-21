@@ -23,9 +23,18 @@ extension RedisClient {
     }
     
     func databases() async throws -> Int {
-        // CONFIG GET returns RESPToken.Map, but our send bridge returns RESPToken?
         let res: RESPToken? = try await self.send("CONFIG", args: ["GET", "databases"])
-        if let tokenArray = try? res?.decode(as: RESPToken.Array.self) {
+        if let tokenMap = try? res?.decode(as: RESPToken.Map.self) {
+            for entry in tokenMap {
+                if String(fromValkeyValue: entry.key) == "databases" {
+                    return Int(fromValkeyValue: entry.value)
+                }
+            }
+            var iterator = tokenMap.makeIterator()
+            if let first = iterator.next() {
+                return Int(fromValkeyValue: first.value)
+            }
+        } else if let tokenArray = try? res?.decode(as: RESPToken.Array.self) {
             let arr = Swift.Array(tokenArray)
             if arr.count >= 2 {
                 return Int(fromValkeyValue: arr[1])

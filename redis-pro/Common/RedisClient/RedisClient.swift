@@ -131,7 +131,7 @@ public protocol ValkeyValueConvertible {
 extension String: ValkeyValueConvertible {
     public init(fromValkeyValue token: RESPToken) {
         switch token.value {
-        case .simpleString(let buffer), .bulkString(let buffer):
+        case .simpleString(let buffer), .bulkString(let buffer), .verbatimString(let buffer):
             self = String(buffer: buffer)
         case .number(let i):
             self = String(i)

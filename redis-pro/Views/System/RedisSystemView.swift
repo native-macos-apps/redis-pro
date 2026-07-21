@@ -10,7 +10,7 @@ import SwiftUI
 import Logging
 
 struct RedisSystemView: View {
-    @State var viewModel: RedisSystemViewModel
+    var viewModel: RedisSystemViewModel
 
     var body: some View {
         switch viewModel.systemView {

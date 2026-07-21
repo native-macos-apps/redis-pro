@@ -39,10 +39,7 @@ struct RedisKeysListView: View {
                     Button("Lua")          { viewModel.redisSystem.setSystemView(.LUA) }
                 } label: {
                     Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.secondary)
                 }
-                .menuStyle(.borderlessButton)
             }
         }
         .sheet(isPresented: addKeySheetBinding) {
