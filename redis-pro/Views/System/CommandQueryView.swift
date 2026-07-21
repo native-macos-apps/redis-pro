@@ -234,9 +234,7 @@ struct CommandQueryView: View {
                         
                         // Toggle docs sidebar button
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                viewModel.showDocsSidebar.toggle()
-                            }
+                            viewModel.showDocsSidebar.toggle()
                         }) {
                             Image(systemName: "sidebar.right")
                                 .font(.system(size: 13))
@@ -302,14 +300,14 @@ struct CommandQueryView: View {
                     .padding(.vertical, 8)
                     .background(.thinMaterial)
                 }
-//                .frame(minHeight: 180, maxHeight: .infinity)
             }
-//            .frame(minWidth: 340)
+            .frame(minWidth: 200, maxWidth: .infinity)
+            .layoutPriority(1)
             
             // ── Right: Command Docs Sidebar ─────────────────────────────
             if viewModel.showDocsSidebar {
                 CommandDocSidebarView(viewModel: viewModel)
-//                    .frame(minWidth: 300, idealWidth: 380)
+                    .transition(.identity)
             }
         }
         .onChange(of: viewModel.currentDocCommand) { _, newCmd in
@@ -353,35 +351,6 @@ struct CommandDocSidebarView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack() {
-                Image(systemName: "book.closed")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-                Text(viewModel.currentDocCommand.isEmpty
-                     ? "Command Docs"
-                     : viewModel.currentDocCommand.uppercased())
-                    .font(.system(.subheadline, weight: .semibold))
-                    .foregroundStyle(viewModel.currentDocCommand.isEmpty ? .secondary : .primary)
-                Spacer()
-                if let url = docsPageURL {
-                    Link(destination: url) {
-                        Image(systemName: "arrow.up.right.square")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                    .help("Open docs in browser")
-                }
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(.thinMaterial)
-            .overlay(alignment: .bottom) {
-                Rectangle()
-                    .fill(Color(NSColor.separatorColor))
-                    .frame(height: 0.5)
-            }
-            
             // Content
             Group {
                 if viewModel.isLoadingDoc {
@@ -423,7 +392,7 @@ struct CommandDocSidebarView: View {
                 }
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .frame(minWidth: 200, idealWidth: 260, maxWidth: 400)
     }
 }
 
