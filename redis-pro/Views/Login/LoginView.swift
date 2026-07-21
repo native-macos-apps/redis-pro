@@ -150,7 +150,6 @@ struct LoginView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.horizontal, 16)
     }
 
     private var connectionList: some View {
@@ -187,7 +186,7 @@ struct LoginView: View {
                     }
                 }
         }
-        .listStyle(.plain)
+        .listStyle(.inset)
     }
 
     // MARK: - Empty State

@@ -37,7 +37,7 @@ struct RedisKeysTreeView: View {
                         .listRowSeparator(.hidden)
                 }
             }
-            .listStyle(.plain)
+            .listStyle(.inset)
         }
     }
 
