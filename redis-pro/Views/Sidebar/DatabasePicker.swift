@@ -22,9 +22,8 @@ struct DatabasePicker: View {
         }, label: {
             Text("DB \(viewModel.database)").font(.system(.body))
         })
-        .menuStyle(BorderlessButtonMenuStyle())
         .onAppear {
             viewModel.initial()
-        }.padding(.horizontal)
+        }
     }
 }
