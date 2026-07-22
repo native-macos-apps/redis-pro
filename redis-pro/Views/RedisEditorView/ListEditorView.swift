@@ -59,10 +59,6 @@ struct ListEditorView: View {
             HStack(alignment: .center, spacing: 0) {
                 KeyObjectBar(viewModel: viewModel.keyObject)
                 Spacer()
-                Button(action: { vm.refresh() }) {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                    .padding(.trailing, 8)
             }
             .frame(height: 30)
             .background(.thinMaterial)

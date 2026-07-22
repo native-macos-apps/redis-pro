@@ -72,9 +72,6 @@ struct HashEditorView: View {
             HStack(alignment: .center, spacing: 0) {
                 KeyObjectBar(viewModel: viewModel.keyObject)
                 Spacer()
-                Button(action: { vm.refresh() }) {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
             }
             .frame(height: 30)
             .background(.ultraThinMaterial)

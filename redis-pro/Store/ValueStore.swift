@@ -12,6 +12,25 @@ import Observation
 
 private let logger = Logger(label: "value-store")
 
+// MARK: - Protocol
+
+/// Protocol chung cho tất cả value ViewModel.
+/// Cho phép ValueViewModel dispatch refresh/initial/setModel
+/// mà không cần kiểm tra kiểu tại mỗi call-site.
+@MainActor
+protocol ValueViewModelProtocol: AnyObject {
+    var redisKeyModel: RedisKeyModel? { get set }
+    func refresh()
+    func initial()
+}
+
+extension StringValueViewModel: ValueViewModelProtocol {}
+extension HashValueViewModel:   ValueViewModelProtocol {}
+extension ListValueViewModel:   ValueViewModelProtocol {}
+extension SetValueViewModel:    ValueViewModelProtocol {}
+extension ZSetValueViewModel:   ValueViewModelProtocol {}
+
+
 @MainActor
 @Observable
 final class ValueViewModel {
@@ -22,6 +41,9 @@ final class ValueViewModel {
     let listValue: ListValueViewModel
     let setValue: SetValueViewModel
     let zsetValue: ZSetValueViewModel
+
+    // Active value VM được gán trong keyChange — routing tập trung tại đây
+    private var activeValue: (any ValueViewModelProtocol)?
 
     // Propagate submit success up to parent (RedisKeysViewModel)
     var onSubmitSuccess: ((Bool) -> Void)?
@@ -66,29 +88,25 @@ final class ValueViewModel {
     func refresh() {
         key.refresh()
         keyObject.refresh()
+        activeValue?.refresh()
     }
 
     func keyChange(_ redisKeyModel: RedisKeyModel) {
         key.redisKeyModel = redisKeyModel
         keyObject.key = redisKeyModel.key
 
-        // Route to the correct value VM
-        if redisKeyModel.type == RedisKeyTypeEnum.STRING.rawValue {
-            stringValue.redisKeyModel = redisKeyModel
-            stringValue.initial()
-        } else if redisKeyModel.type == RedisKeyTypeEnum.HASH.rawValue {
-            hashValue.redisKeyModel = redisKeyModel
-            hashValue.initial()
-        } else if redisKeyModel.type == RedisKeyTypeEnum.LIST.rawValue {
-            listValue.redisKeyModel = redisKeyModel
-            listValue.initial()
-        } else if redisKeyModel.type == RedisKeyTypeEnum.SET.rawValue {
-            setValue.redisKeyModel = redisKeyModel
-            setValue.initial()
-        } else if redisKeyModel.type == RedisKeyTypeEnum.ZSET.rawValue {
-            zsetValue.redisKeyModel = redisKeyModel
-            zsetValue.initial()
+        // Routing duy nhất: gán activeValue theo type
+        switch RedisKeyTypeEnum(rawValue: redisKeyModel.type) {
+        case .STRING: activeValue = stringValue
+        case .HASH:   activeValue = hashValue
+        case .LIST:   activeValue = listValue
+        case .SET:    activeValue = setValue
+        case .ZSET:   activeValue = zsetValue
+        default:      activeValue = nil
         }
+
+        activeValue?.redisKeyModel = redisKeyModel
+        activeValue?.initial()
 
         key.refresh()
         keyObject.refresh()
@@ -96,16 +114,7 @@ final class ValueViewModel {
 
     func setKeyModel(_ redisKeyModel: RedisKeyModel) {
         key.redisKeyModel = redisKeyModel
-        if redisKeyModel.type == RedisKeyTypeEnum.STRING.rawValue {
-            stringValue.redisKeyModel = redisKeyModel
-        } else if redisKeyModel.type == RedisKeyTypeEnum.HASH.rawValue {
-            hashValue.redisKeyModel = redisKeyModel
-        } else if redisKeyModel.type == RedisKeyTypeEnum.LIST.rawValue {
-            listValue.redisKeyModel = redisKeyModel
-        } else if redisKeyModel.type == RedisKeyTypeEnum.SET.rawValue {
-            setValue.redisKeyModel = redisKeyModel
-        } else if redisKeyModel.type == RedisKeyTypeEnum.ZSET.rawValue {
-            zsetValue.redisKeyModel = redisKeyModel
-        }
+        activeValue?.redisKeyModel = redisKeyModel
     }
 }
+

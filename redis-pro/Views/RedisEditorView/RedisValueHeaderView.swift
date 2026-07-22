@@ -11,7 +11,7 @@ import Logging
 
 struct RedisValueHeaderView: View {
 
-    @State var viewModel: KeyViewModel
+    @State var viewModel: ValueViewModel
     @State private var isEditingTTL = false
     @State private var tempTTL: Int = -1
     
@@ -19,7 +19,7 @@ struct RedisValueHeaderView: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            Text(viewModel.key)
+            Text(viewModel.key.key)
                 .textSelection(.enabled)
                 .font(.body)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -28,17 +28,25 @@ struct RedisValueHeaderView: View {
                 .opacity(0.8)
                 .font(.system(.body, design: .monospaced))
             
+            Button(action: {
+                viewModel.refresh()
+            }) {
+                Image(systemName: "arrow.clockwise")
+            }
+            .buttonStyle(.plain)
+            .help("Refresh")
+
             // TTL display with click-to-edit popover
             HStack(spacing: 4) {
                 Text("TTL:")
                     .font(.body)
 
                 Button(action: {
-                    tempTTL = viewModel.ttl
+                    tempTTL = viewModel.key.ttl
                     isEditingTTL = true
                 }) {
                     HStack {
-                        Text(viewModel.ttl == -1 ? "-1 (Never)" : "\(viewModel.ttl)s")
+                        Text(viewModel.key.ttl == -1 ? "-1 (Never)" : "\(viewModel.key.ttl)s")
                         Image(systemName: "chevron.down")
                     }
                     .font(.subheadline)
@@ -80,8 +88,8 @@ struct RedisValueHeaderView: View {
     }
 
     private func commitTTL() {
-        viewModel.ttl = tempTTL
-        viewModel.submit()
+        viewModel.key.ttl = tempTTL
+        viewModel.key.submit()
         isEditingTTL = false
     }
 }

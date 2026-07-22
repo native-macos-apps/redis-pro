@@ -27,9 +27,6 @@ struct StringEditorView: View {
 
             // Footer
             HStack(alignment: .center, spacing: 6) {
-                Button(action: { vm.refresh() }) {
-                    Image(systemName: "arrow.clockwise")
-                }
                 KeyObjectBar(viewModel: viewModel.keyObject)
 
                 Spacer()
