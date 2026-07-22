@@ -37,16 +37,12 @@ struct RedisValueHeaderView: View {
                     tempTTL = viewModel.ttl
                     isEditingTTL = true
                 }) {
-                    HStack(spacing: 4) {
+                    HStack {
                         Text(viewModel.ttl == -1 ? "-1 (Never)" : "\(viewModel.ttl)s")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Image(systemName: "pencil")
-                            .font(.caption)
-                            .foregroundColor(.accentColor)
+                        Image(systemName: "chevron.down")
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
                 .help("Click to edit TTL")
