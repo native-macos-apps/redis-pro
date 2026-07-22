@@ -27,6 +27,9 @@ struct StringEditorView: View {
 
             // Footer
             HStack(alignment: .center, spacing: 6) {
+                Button(action: { vm.refresh() }) {
+                    Image(systemName: "arrow.clockwise")
+                }
                 KeyObjectBar(viewModel: viewModel.keyObject)
 
                 Spacer()
@@ -39,9 +42,6 @@ struct StringEditorView: View {
                 .pickerStyle(.segmented)
                 .frame(width: 150)
 
-                Button(action: { vm.refresh() }) {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
                 Button(action: { vm.submit() }) {
                     Label("Submit", systemImage: "checkmark")
                 }
