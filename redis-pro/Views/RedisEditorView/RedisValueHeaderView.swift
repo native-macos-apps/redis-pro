@@ -19,15 +19,6 @@ struct RedisValueHeaderView: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            Text(viewModel.key.key)
-                .textSelection(.enabled)
-                .font(.body)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .opacity(0.8)
-                .font(.system(.body, design: .monospaced))
-            
             Button(action: {
                 viewModel.refresh()
             }) {
@@ -35,6 +26,11 @@ struct RedisValueHeaderView: View {
             }
             .buttonStyle(.plain)
             .help("Refresh")
+
+            Text(viewModel.key.key)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.system(.body, design: .monospaced))
 
             // TTL display with click-to-edit popover
             HStack(spacing: 4) {
