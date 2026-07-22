@@ -11,6 +11,7 @@ import SwiftUI
 struct LoginForm: View {
 
     @Environment(\.openURL) var openURL
+    @Environment(\.dismiss) private var dismiss
     @State var viewModel: LoginViewModel
 
     // MARK: - SSH binding
@@ -38,7 +39,6 @@ struct LoginForm: View {
             footer
         }
         .frame(width: 480, height: useSSH ? 560 : 400)
-        .glassEffect(in: .rect(cornerRadius: 12))
         .animation(.easeInOut(duration: 0.22), value: useSSH)
     }
 
@@ -108,12 +108,20 @@ struct LoginForm: View {
             Spacer() // always pushes buttons to the right
 
             // Actions — always pinned right
+            Button("Cancel") {
+                dismiss()
+            }
+            .keyboardShortcut(.cancelAction)
+
             Button("Test") { viewModel.testConnect() }
                 .disabled(viewModel.loading)
 
-            Button("Save") { viewModel.save() }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut(.defaultAction)
+            Button("Save") {
+                viewModel.save()
+                dismiss()
+            }
+            .buttonStyle(.borderedProminent)
+            .keyboardShortcut(.defaultAction)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

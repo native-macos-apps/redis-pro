@@ -34,5 +34,7 @@ struct HomeView: View {
             }
             // 设置window标题
             .navigationTitle(viewModel.title)
+            .textFieldStyle(.roundedBorder)
+            .buttonStyle(.bordered)
     }
 }

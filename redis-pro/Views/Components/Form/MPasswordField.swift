@@ -52,6 +52,5 @@ struct MPasswordField: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
-        .glassEffect(.regular.tint(isFocused ? .accentColor.opacity(0.15) : .clear).interactive(), in: .rect(cornerRadius: 6))
     }
 }

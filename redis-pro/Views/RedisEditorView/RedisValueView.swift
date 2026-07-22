@@ -13,7 +13,7 @@ struct RedisValueView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            RedisValueHeaderView(viewModel: viewModel.key)
+            RedisValueHeaderView(viewModel: viewModel)
 
             Divider()
 

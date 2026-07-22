@@ -30,7 +30,31 @@ struct RedisKeysListView: View {
             ToolbarItem(placement: .principal) {
                 connectionInfoBadge
             }
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button("Redis Info")   { viewModel.redisSystem.setSystemView(.REDIS_INFO) }
+                    Button("Redis Config") { viewModel.redisSystem.setSystemView(.REDIS_CONFIG) }
+                    Button("Clients")      { viewModel.redisSystem.setSystemView(.CLIENT_LIST) }
+                    Button("Slow Log")     { viewModel.redisSystem.setSystemView(.SLOW_LOG) }
+                    Button("Lua")          { viewModel.redisSystem.setSystemView(.LUA) }
+                } label: {
+                    Image(systemName: "slider.horizontal.3")
+                }
+            }
         }
+        .sheet(isPresented: addKeySheetBinding) {
+            AddKeySheet(viewModel: viewModel.addKey)
+        }
+
+    }
+
+    // MARK: - Add Key Sheet Binding
+
+    private var addKeySheetBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.addKey.isVisible },
+            set: { viewModel.addKey.isVisible = $0 }
+        )
     }
 
     // MARK: - Sidebar
@@ -83,27 +107,25 @@ struct RedisKeysListView: View {
 
     private var sidebarFooter: some View {
         HStack(alignment: .center, spacing: 6) {
-            Menu {
-                Button("Redis Info")   { viewModel.redisSystem.setSystemView(.REDIS_INFO) }
-                Button("Redis Config") { viewModel.redisSystem.setSystemView(.REDIS_CONFIG) }
-                Button("Clients")      { viewModel.redisSystem.setSystemView(.CLIENT_LIST) }
-                Button("Slow Log")     { viewModel.redisSystem.setSystemView(.SLOW_LOG) }
-                Button("Lua")          { viewModel.redisSystem.setSystemView(.LUA) }
-                Divider()
-                Button("Flush DB", role: .destructive) { viewModel.flushDBConfirm() }
+            Button {
+                viewModel.refresh()
             } label: {
-                Image(systemName: "ellipsis.circle")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.secondary)
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 12, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
             }
-            .menuStyle(.borderlessButton)
-            .frame(width: 24)
+            .buttonStyle(.plain)
+            .help("Refresh keys")
             .padding(.leading, 10)
 
-            MIcon(icon: "arrow.clockwise", fontSize: 12) { viewModel.refresh() }
-                .help("Refresh keys")
-
-            MIcon(icon: "plus") { viewModel.addNew() }
+            Button {
+                viewModel.addNew()
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 11, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+            }
+            .buttonStyle(.plain)
 
             Spacer(minLength: 0)
         }

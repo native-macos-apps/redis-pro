@@ -25,5 +25,7 @@ struct IndexView: View {
                     dismiss()
                 }
             }
+            .buttonStyle(.bordered)
+            .textFieldStyle(.roundedBorder)
     }
 }

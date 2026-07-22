@@ -31,6 +31,7 @@ final class RedisKeysViewModel {
     let page: PageViewModel
     let rename: RenameViewModel
     let commandQuery: CommandQueryViewModel
+    let addKey: AddKeyViewModel
 
     private let redisInstance: RedisInstanceModel
 
@@ -59,6 +60,7 @@ final class RedisKeysViewModel {
         self.page = PageViewModel()
         self.rename = RenameViewModel(redisInstance: redisInstance)
         self.commandQuery = CommandQueryViewModel(redisInstance: redisInstance)
+        self.addKey = AddKeyViewModel(redisInstance: redisInstance)
 
         setupCallbacks()
         logger.info("RedisKeysViewModel init ...")
@@ -121,18 +123,23 @@ final class RedisKeysViewModel {
             }
         }
 
-        // Value submit success callback
-        value.onSubmitSuccess = { [weak self] isNew in
+        // Value submit success callback (chỉ dùng cho edit hiện tại, không còn isNew flow)
+        value.onSubmitSuccess = { [weak self] _ in
             guard let self else { return }
-            let redisKeyModel = self.value.key.redisKeyModel
-            if isNew {
-                self.table.datasource.insert(redisKeyModel, at: 0)
-                let datasource = self.table.datasource
-                self.selectedKeyId = redisKeyModel.key
-                Task {
-                    let nodes = RedisKeyNode.buildTree(from: datasource)
-                    self.redisKeyNodes = nodes
-                }
+        }
+
+        // Add key popup callback
+        addKey.onSuccess = { [weak self] newKeyModel in
+            guard let self else { return }
+            self.table.datasource.insert(newKeyModel, at: 0)
+            let datasource = self.table.datasource
+            self.selectedKeyId = newKeyModel.key
+            self.value.keyChange(newKeyModel)
+            self.mainViewType = .EDITOR
+            Task {
+                let nodes = RedisKeyNode.buildTree(from: datasource)
+                self.redisKeyNodes = nodes
+                await self.dbsize()
             }
         }
 
@@ -241,9 +248,7 @@ final class RedisKeysViewModel {
     }
 
     func addNew() {
-        var newKey = RedisKeyModel()
-        newKey.initNew()
-        value.keyChange(newKey)
+        addKey.open()
     }
 
     func selectNode(_ keyId: String?) {

@@ -39,17 +39,13 @@ struct StringEditorView: View {
                 .pickerStyle(.segmented)
                 .frame(width: 150)
 
-                IconButton(icon: "arrow.clockwise", name: "Refresh", action: { vm.refresh() })
-                IconButton(icon: "checkmark", name: "Submit", action: { vm.submit() })
-                    .padding(.trailing, 8)
+                Button(action: { vm.submit() }) {
+                    Label("Submit", systemImage: "checkmark")
+                }
             }
+            .padding(.horizontal, 16)
+            .background(.ultraThinMaterial)
             .frame(height: 30)
-            .background(.thinMaterial)
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Color(NSColor.separatorColor))
-                    .frame(height: 0.5)
-            }
         }
         .onAppear {
             logger.info("redis string value editor view appear ...")
@@ -81,12 +77,12 @@ struct StringEditorView: View {
         let formatted = formatJSON(vm.text)
         let attributed = JSONHighlighter.highlight(formatted)
 
-        ScrollView([.vertical, .horizontal]) {
+        ScrollView(.vertical) {
             Text(attributed)
                 .font(.system(.body, design: .monospaced))
                 .lineSpacing(2)
                 .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
                 .padding(8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -17,7 +17,9 @@ struct HashEditorView: View {
         let vm = viewModel.hashValue
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 6) {
-                IconButton(icon: "plus", name: "Add", action: { vm.addNew() })
+                Button(action: { vm.addNew() }) {
+                    Label("Add", systemImage: "plus")
+                }
 
                 SearchBar(placeholder: "Search field...", onCommit: { vm.search($0) })
                 PageBar(viewModel: vm.page)
@@ -70,16 +72,10 @@ struct HashEditorView: View {
             HStack(alignment: .center, spacing: 0) {
                 KeyObjectBar(viewModel: viewModel.keyObject)
                 Spacer()
-                IconButton(icon: "arrow.clockwise", name: "Refresh", action: { vm.refresh() })
-                    .padding(.trailing, 8)
             }
             .frame(height: 30)
-            .background(.thinMaterial)
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Color(NSColor.separatorColor))
-                    .frame(height: 0.5)
-            }
+            .background(.ultraThinMaterial)
+            .padding(.horizontal, 16)
         }
         .onAppear {
             logger.info("redis hash editor view appear ...")

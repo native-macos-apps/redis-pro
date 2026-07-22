@@ -87,10 +87,6 @@ final class ZSetValueViewModel {
 
     func getValue() {
         guard let redisKeyModel = redisKeyModel else { return }
-        if redisKeyModel.isNew {
-            table.reset()
-            return
-        }
         let key = redisKeyModel.key
         // Capture primitives (not Page) to avoid Swift 6 Sendable error
         let current = self.page.current

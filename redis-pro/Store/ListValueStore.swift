@@ -83,10 +83,6 @@ final class ListValueViewModel {
 
     func getValue() {
         guard let redisKeyModel = redisKeyModel else { return }
-        if redisKeyModel.isNew {
-            table.reset()
-            return
-        }
         let key = redisKeyModel.key
         
         let current = self.page.current

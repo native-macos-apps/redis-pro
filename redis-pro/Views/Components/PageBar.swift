@@ -34,9 +34,15 @@ struct PageBar: View {
             .labelsHidden()
 
             HStack(spacing: 6) {
-                MIcon(icon: "chevron.left", fontSize: 10, disabled: !viewModel.hasPrev) {
+                Button {
                     viewModel.prevPage()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 10, weight: .medium))
+                        .symbolRenderingMode(.hierarchical)
                 }
+                .buttonStyle(.plain)
+                .disabled(!viewModel.hasPrev)
 
                 Text("\(viewModel.current)/\(viewModel.totalPageText)")
                     .font(.system(size: 10, weight: .regular))
@@ -45,9 +51,15 @@ struct PageBar: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(1)
 
-                MIcon(icon: "chevron.right", fontSize: 10, disabled: !viewModel.hasNext) {
+                Button {
                     viewModel.nextPage()
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .medium))
+                        .symbolRenderingMode(.hierarchical)
                 }
+                .buttonStyle(.plain)
+                .disabled(!viewModel.hasNext)
             }
         }
         .padding(.horizontal, 6)

@@ -14,13 +14,20 @@ extension RedisClient {
         logger.info("get redis config list, pattern: \(pattern)...")
         
         let res: RESPToken? = try await self.send("CONFIG", args: ["GET", pattern.isEmpty ? "*" : pattern])
-        guard let tokenArray = try? res?.decode(as: RESPToken.Array.self) else { return [] }
-        let arr = Swift.Array(tokenArray)
-        
         var configList = [RedisConfigItemModel]()
-        let max: Int = arr.count / 2
-        for index in (0..<max) {
-            configList.append(RedisConfigItemModel(key: String(fromValkeyValue: arr[index * 2]), value: String(fromValkeyValue: arr[index * 2 + 1])))
+        
+        if let tokenMap = try? res?.decode(as: RESPToken.Map.self) {
+            for entry in tokenMap {
+                let k = String(fromValkeyValue: entry.key)
+                let v = String(fromValkeyValue: entry.value)
+                configList.append(RedisConfigItemModel(key: k, value: v))
+            }
+        } else if let tokenArray = try? res?.decode(as: RESPToken.Array.self) {
+            let arr = Swift.Array(tokenArray)
+            let max: Int = arr.count / 2
+            for index in (0..<max) {
+                configList.append(RedisConfigItemModel(key: String(fromValkeyValue: arr[index * 2]), value: String(fromValkeyValue: arr[index * 2 + 1])))
+            }
         }
         return configList
     }
@@ -34,7 +41,17 @@ extension RedisClient {
     func getConfigOne(key: String) async throws -> String? {
         logger.info("get redis config ...")
         let res: RESPToken? = try await self.send("CONFIG", args: ["GET", key])
-        if let tokenArray = try? res?.decode(as: RESPToken.Array.self) {
+        if let tokenMap = try? res?.decode(as: RESPToken.Map.self) {
+            for entry in tokenMap {
+                if String(fromValkeyValue: entry.key) == key {
+                    return String(fromValkeyValue: entry.value)
+                }
+            }
+            var iterator = tokenMap.makeIterator()
+            if let first = iterator.next() {
+                return String(fromValkeyValue: first.value)
+            }
+        } else if let tokenArray = try? res?.decode(as: RESPToken.Array.self) {
             let arr = Swift.Array(tokenArray)
             if arr.count >= 2 {
                 return String(fromValkeyValue: arr[1])

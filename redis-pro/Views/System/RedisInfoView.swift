@@ -31,9 +31,7 @@ struct RedisInfoView: View {
             HStack(alignment: .center, spacing: 8) {
                 Spacer()
                 Button("Reset State") { viewModel.resetState() }
-                    .buttonStyle(.bordered)
                 Button("Refresh") { viewModel.refresh() }
-                    .buttonStyle(.bordered)
             }
         }
         .onAppear {

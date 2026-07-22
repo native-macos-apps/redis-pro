@@ -45,6 +45,18 @@ final class RedisSystemViewModel {
 
     func setSystemView(_ type: RedisSystemViewTypeEnum) {
         systemView = type
+        switch type {
+        case .REDIS_INFO:
+            redisInfo.initial()
+        case .REDIS_CONFIG:
+            redisConfig.initial()
+        case .CLIENT_LIST:
+            clientList.initial()
+        case .SLOW_LOG:
+            slowLog.initial()
+        case .LUA:
+            break
+        }
         onSetSystemView?()
     }
 }

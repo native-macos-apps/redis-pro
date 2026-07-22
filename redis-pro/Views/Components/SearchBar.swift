@@ -25,7 +25,6 @@ struct SearchBar: View {
         VStack(spacing: 0) {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
 
                 TextField("", text: $keywords, prompt: Text(placeholder).foregroundColor(.secondary))
@@ -39,9 +38,6 @@ struct SearchBar: View {
                     }
                     .onChange(of: isFocused) { _, focused in
                         showHistory = focused && !searchHistory.isEmpty
-                    }
-                    .onHover { inside in
-                        if inside { NSCursor.iBeam.push() } else { NSCursor.pop() }
                     }
 
                 if !keywords.isEmpty {
@@ -60,10 +56,9 @@ struct SearchBar: View {
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
-            .glassEffect(.regular.tint(isFocused ? .accentColor.opacity(0.15) : .clear).interactive(), in: .rect(cornerRadius: 6))
+            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
             .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isFocused)
         }
-        .zIndex(10)
         .onAppear {
             searchHistory = RedisDefaults.getSearchHistory()
         }
@@ -94,9 +89,6 @@ struct SearchBar: View {
                             keywords = item
                             showHistory = false
                             commit()
-                        }
-                        .onHover { inside in
-                            if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
                         }
                         Divider().padding(.horizontal, 8)
                     }

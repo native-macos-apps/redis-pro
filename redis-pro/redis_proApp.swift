@@ -28,7 +28,7 @@ struct redis_proApp: App {
 
 
     var body: some Scene {
-        Window("", id: "login-window") {
+        Window("Home", id: "login-window") {
             if let appVM = rootViewModel.windows.first {
                 IndexView(viewModel: appVM)
                     .preferredColorScheme(preferredColorScheme)

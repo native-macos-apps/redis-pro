@@ -26,8 +26,12 @@ struct FormItemInt: View {
 //            NIntField(value: $value, placeholder: placeholder ?? label, onCommit: onCommit)
 //            MTextField(value: valueProxy, placeholder: placeholder ?? label, suffix: suffix, onCommit: onCommit, autoCommit: autoCommit)
             MIntField(value: $value, placeholder: placeholder ?? label, onCommit: onCommit).help(tips ?? "")
-            if(tips != nil) {
-                MIcon(icon: "questionmark.circle", fontSize: 13).help(tips!)
+            if let tips = tips {
+                Image(systemName: "questionmark.circle")
+                    .font(.system(size: 13, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.secondary)
+                    .help(tips)
             }
         }
     }

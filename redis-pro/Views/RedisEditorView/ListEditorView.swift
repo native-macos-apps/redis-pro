@@ -17,8 +17,12 @@ struct ListEditorView: View {
         let vm = viewModel.listValue
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 4) {
-                IconButton(icon: "plus", name: "Add head", action: { vm.addNew(type: -1) })
-                IconButton(icon: "plus", name: "Add tail", action: { vm.addNew(type: -2) })
+                Button(action: { vm.addNew(type: -1) }) {
+                    Label("Add head", systemImage: "plus")
+                }
+                Button(action: { vm.addNew(type: -2) }) {
+                    Label("Add tail", systemImage: "plus")
+                }
 
                 Spacer()
                 PageBar(viewModel: vm.page)
@@ -55,8 +59,6 @@ struct ListEditorView: View {
             HStack(alignment: .center, spacing: 0) {
                 KeyObjectBar(viewModel: viewModel.keyObject)
                 Spacer()
-                IconButton(icon: "arrow.clockwise", name: "Refresh", action: { vm.refresh() })
-                    .padding(.trailing, 8)
             }
             .frame(height: 30)
             .background(.thinMaterial)

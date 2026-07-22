@@ -39,10 +39,6 @@ final class StringValueViewModel {
 
     func getLength() async {
         guard let redisKeyModel = redisKeyModel else { return }
-        if redisKeyModel.isNew {
-            text = ""
-            return
-        }
         let key = redisKeyModel.key
         do {
             let r = try await redisInstance.getClient().strLen(key)
@@ -54,10 +50,6 @@ final class StringValueViewModel {
 
     func getValue() async {
         guard let redisKeyModel = redisKeyModel else { return }
-        if redisKeyModel.isNew {
-            text = ""
-            return
-        }
         let key = redisKeyModel.key
         do {
             let r = try await redisInstance.getClient().get(key)

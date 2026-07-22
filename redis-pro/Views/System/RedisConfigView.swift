@@ -20,7 +20,6 @@ struct RedisConfigView: View {
                 SearchBar(placeholder: "Search config...", onCommit: { viewModel.search($0) })
                 Spacer()
                 Button("Rewrite") { viewModel.rewrite() }
-                    .buttonStyle(.bordered)
                     .help("REDIS_CONFIG_REWRITE")
             }.padding(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
 
@@ -36,7 +35,6 @@ struct RedisConfigView: View {
             HStack(alignment: .center, spacing: 6) {
                 Spacer()
                 Button("Refresh") { viewModel.refresh() }
-                    .buttonStyle(.bordered)
             }
         }
         .sheet(isPresented: Binding(get: { viewModel.editModalVisible }, set: { viewModel.editModalVisible = $0 })) {

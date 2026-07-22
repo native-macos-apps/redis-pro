@@ -29,10 +29,8 @@ struct ClientsListView: View {
                 Button("Kill Client") {
                     viewModel.killConfirm(viewModel.table.selectIndex)
                 }
-                .buttonStyle(.bordered)
                 .disabled(viewModel.table.selectIndex < 0)
                 Button("Refresh") { viewModel.refresh() }
-                    .buttonStyle(.bordered)
             }
         }
         .onAppear {
