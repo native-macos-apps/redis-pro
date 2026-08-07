@@ -1,7 +1,7 @@
 # Redis Pro
 
 ![Swift 6.0+](https://img.shields.io/badge/Swift-6.0%2B-orange.svg?style=flat)
-[![release](https://img.shields.io/github/v/release/cmushroom/redis-pro?include_prereleases)](https://github.com/cmushroom/redis-pro/releases)
+[![release](https://img.shields.io/github/v/release/native-macos-apps/redis-pro?include_prereleases)](https://github.com/native-macos-apps/redis-pro/releases)
 ![platforms](https://img.shields.io/badge/Platforms-macOS-orange.svg?style=flat)
 
 ## Intro
@@ -19,21 +19,15 @@
 - [x] **Real-time Diagnostics**: Slow log analysis, system config editor, and live server info metric visualization.
 - [x] **Client Management**: Real-time listing, monitoring, and dynamic termination of active client connections.
 - [x] **Batch Operations**: Perform high-speed bulk deletions of keys matching specific patterns.
-- [x] **Native MVVM & Zero-Bloat**: Fully built on Swift 6 `@Observable` and native SwiftUI, completely free of bulky third-party UI framework dependencies.
 
 ## Installation
-* **Direct Download**: Download the latest DMG release from the [releases page](https://github.com/cmushroom/redis-pro/releases).
-* **Homebrew**:
-    ```bash
-    brew install redis-pro
-    ```
+* **Direct Download**: Download the latest DMG release from the [releases page](https://github.com/native-macos-apps/redis-pro/releases).
 
 ## Platform
 * Supports macOS 15.0+ (Universal binary for Intel and Apple Silicon).
 
 ## Roadmap
-- [ ] Native Terminal / CLI integration
-- [ ] SSH key-based (private key) authentication
+- [x] SSH key-based (private key) authentication
 - [ ] Cluster & Sentinel support
 
 ## Dependencies

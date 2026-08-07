@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct RedisKeyNode: Identifiable, Equatable {
+struct RedisKeyNode: Identifiable, Equatable, Hashable {
     let id: String
     let name: String
     let fullName: String
@@ -20,6 +20,10 @@ struct RedisKeyNode: Identifiable, Equatable {
 
     static func == (lhs: RedisKeyNode, rhs: RedisKeyNode) -> Bool {
         lhs.id == rhs.id && lhs.keyCount == rhs.keyCount && lhs.children == rhs.children
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 
