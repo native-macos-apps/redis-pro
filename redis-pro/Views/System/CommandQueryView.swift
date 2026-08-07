@@ -1200,6 +1200,7 @@ struct CommandQueryTextEditor: NSViewRepresentable {
         Coordinator(self)
     }
     
+    @MainActor
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: CommandQueryTextEditor
         var isUpdating = false

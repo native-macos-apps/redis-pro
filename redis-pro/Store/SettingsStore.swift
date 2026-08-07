@@ -22,10 +22,7 @@ final class SettingsViewModel {
     var keepalive: Int = 30
     var redisModels: [RedisModel] = []
     var fastPage: Bool = true
-    // 快速分页阈值, 超过这个数值后, 不再继续查询, 提高查询性能, 减少对redis影响
     var fastPageMax: Int = 99
-    // 搜索历史记录数量
-    var searchHistorySize: Int = 20
 
     init() {
         logger.info("SettingsViewModel init ...")
@@ -69,12 +66,6 @@ final class SettingsViewModel {
         logger.info("set stringMaxLength, \(value)")
         stringMaxLength = value
         UserDefaults.standard.set(value, forKey: UserDefaultsKeysEnum.AppStringMaxLength.rawValue)
-    }
-
-    func setSearchHistorySize(_ value: Int) {
-        logger.info("set search history size, \(value)")
-        searchHistorySize = value
-        UserDefaults.standard.set(value, forKey: UserDefaultsKeysEnum.UserSearchHistory.rawValue)
     }
 
     func setKeepalive(_ value: Int) {
