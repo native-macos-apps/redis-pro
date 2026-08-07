@@ -11,9 +11,7 @@ import Logging
 struct SearchBar: View {
 
     @State private var keywords: String = ""
-    @State private var searchHistory: [String] = []
     @FocusState private var isFocused: Bool
-    @State private var showHistory: Bool = false
 
     var placeholder: String = "Search..."
     var onCommit: ((String) -> Void)?
@@ -32,18 +30,10 @@ struct SearchBar: View {
                     .font(.body)
                     .focused($isFocused)
                     .onSubmit { commit() }
-                    .onChange(of: keywords) { _, newValue in
-                        showHistory = isFocused && !searchHistory.isEmpty
-                        onChange?(newValue)
-                    }
-                    .onChange(of: isFocused) { _, focused in
-                        showHistory = focused && !searchHistory.isEmpty
-                    }
 
                 if !keywords.isEmpty {
                     Button(action: {
                         keywords = ""
-                        showHistory = false
                         onCommit?("")
                     }) {
                         Image(systemName: "xmark.circle.fill")
@@ -59,60 +49,12 @@ struct SearchBar: View {
             .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
             .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isFocused)
         }
-        .onAppear {
-            searchHistory = RedisDefaults.getSearchHistory()
-        }
-    }
-
-    // MARK: - History dropdown (rendered by parent overlay)
-
-    @ViewBuilder
-    var historyDropdown: some View {
-        if showHistory {
-            let filtered = searchHistory.filter { keywords.isEmpty || $0.localizedCaseInsensitiveContains(keywords) }
-            if !filtered.isEmpty {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(filtered.prefix(8), id: \.self) { item in
-                        HStack {
-                            Image(systemName: "clock")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                            Text(item)
-                                .font(.body)
-                                .lineLimit(1)
-                            Spacer()
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            keywords = item
-                            showHistory = false
-                            commit()
-                        }
-                        Divider().padding(.horizontal, 8)
-                    }
-                }
-                .glassEffect(in: .rect(cornerRadius: 6))
-                .zIndex(100)
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .move(edge: .top)),
-                    removal: .opacity
-                ))
-            }
-        }
     }
 
     // MARK: - Private
 
     private func commit() {
         Self.logger.info("SearchBar commit, keywords: \(keywords)")
-        var history = searchHistory
-        history.removeAll { $0 == keywords }
-        if !keywords.isEmpty { history.insert(keywords, at: 0) }
-        searchHistory = Array(history.prefix(20))
-        RedisDefaults.saveSearchHistory(history: searchHistory)
         onCommit?(keywords)
-        showHistory = false
     }
 }

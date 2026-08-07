@@ -21,7 +21,6 @@ enum UserDefaultsKeysEnum: String {
     case AppKeepalive = "App.Keepalive"
     // fast page
     case AppFastPage = "App.FastPage"
-    
-    case UserSearchHistory = "User.SearchHistory"
+
     case CommandQueryText = "User.CommandQueryText"
 }

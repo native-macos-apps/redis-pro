@@ -132,15 +132,6 @@ class RedisDefaults {
         return nextId
     }
     
-    public static func getSearchHistory() -> [String] {
-        return userDefaults.array(forKey: UserDefaultsKeysEnum.UserSearchHistory.rawValue) as? [String] ?? []
-    }
-    
-    public static func saveSearchHistory(history:[String]) {
-        userDefaults.set(history, forKey: UserDefaultsKeysEnum.UserSearchHistory.rawValue)
-        logger.info("save user search history to user defaults complete, \(history)")
-    }
-    
     public static func getCommandQueryText() -> String {
         return userDefaults.string(forKey: UserDefaultsKeysEnum.CommandQueryText.rawValue) ?? ""
     }

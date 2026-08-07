@@ -63,20 +63,9 @@ struct SettingsView: View {
                 }
                 .toggleStyle(.switch)
                 .help("HELP_FAST_PAGE")
-
-                FormItemInt(
-                    label: "Search History Size",
-                    labelWidth: labelWidth,
-                    tips: "HELP_SEARCH_HISTORY_SIZE",
-                    value: Binding(
-                        get: { viewModel.searchHistorySize },
-                        set: { viewModel.setSearchHistorySize($0) }
-                    )
-                )
             }
         }
         .formStyle(.grouped)
         .navigationTitle("Preferences")
-//        .frame(minWidth: 420, minHeight: 260)
     }
 }
