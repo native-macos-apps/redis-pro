@@ -60,7 +60,7 @@ final class CommandQueryViewModel {
         
         Task {
             do {
-                let client = try await redisInstance.getClient()
+                let client = redisInstance.getClient()
                 
                 // execute using raw command
                 let responseToken: RESPToken? = try await client.send(parsed.command, args: parsed.args)
