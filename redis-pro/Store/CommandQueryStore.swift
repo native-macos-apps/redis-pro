@@ -165,7 +165,7 @@ final class CommandQueryViewModel {
         isCommandListLoaded = true
         Task {
             do {
-                let client = try await redisInstance.getClient()
+                let client = redisInstance.getClient()
                 let response: RESPToken? = try await client.send("COMMAND", args: ["LIST"])
                 if let response, let arr = try? response.decode(as: RESPToken.Array.self) {
                     let names = Array(arr)
@@ -206,7 +206,7 @@ final class CommandQueryViewModel {
         
         Task {
             do {
-                let client = try await redisInstance.getClient()
+                let client = redisInstance.getClient()
                 let response: RESPToken? = try await client.send("COMMAND", args: ["DOCS", cmd])
                 if let response, let doc = parseCommandDoc(cmd, from: response) {
                     self.commandDocsCache[cmd] = doc   // cache for the session

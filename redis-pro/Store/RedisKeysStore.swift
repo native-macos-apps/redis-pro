@@ -124,9 +124,7 @@ final class RedisKeysViewModel {
         }
 
         // Value submit success callback (chỉ dùng cho edit hiện tại, không còn isNew flow)
-        value.onSubmitSuccess = { [weak self] _ in
-            guard let self else { return }
-        }
+        value.onSubmitSuccess = { _ in }
 
         // Add key popup callback
         addKey.onSuccess = { [weak self] newKeyModel in
