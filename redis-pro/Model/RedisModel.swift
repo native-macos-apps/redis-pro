@@ -20,27 +20,40 @@ struct RedisModel: Identifiable, Sendable, Hashable {
     var ping: Bool = false
     var connectionType: String = "tcp"
     
-    // ssh
+    // SSH
     var sshHost: String = ""
     var sshPort: Int = 22
     var sshUser: String = ""
     var sshPass: String = ""
+
+    // Sentinel
+    var sentinelMasterName: String = "mymaster"
+    var sentinelNodes: String = "127.0.0.1:26379"
+    var sentinelPassword: String = ""
+
+    // Cluster
+    var clusterNodes: String = "127.0.0.1:6379"
     
     var image: Image = Image("icon-redis")
     
     var dictionary: [String: Any] {
-        return ["id": id,
-                "name": name,
-                "host": host,
-                "port": port,
-                "database": database,
-                "username": username,
-                "password": password,
-                "connectionType": connectionType,
-                "sshHost": sshHost,
-                "sshPort": sshPort,
-                "sshUser": sshUser,
-                "sshPass": sshPass,
+        return [
+            "id": id,
+            "name": name,
+            "host": host,
+            "port": port,
+            "database": database,
+            "username": username,
+            "password": password,
+            "connectionType": connectionType,
+            "sshHost": sshHost,
+            "sshPort": sshPort,
+            "sshUser": sshUser,
+            "sshPass": sshPass,
+            "sentinelMasterName": sentinelMasterName,
+            "sentinelNodes": sentinelNodes,
+            "sentinelPassword": sentinelPassword,
+            "clusterNodes": clusterNodes,
         ]
     }
     
@@ -69,14 +82,14 @@ struct RedisModel: Identifiable, Sendable, Hashable {
     init(dictionary: [String: Any]) {
         self.init()
         
-        self.id = dictionary["id"] as! String
-        self.name = dictionary["name"] as! String
-        self.host = dictionary["host"] as! String
-        self.port = dictionary["port"] as! Int
-        self.database = dictionary["database"] as! Int
-        self.username = (dictionary["username"] ?? "") as! String
-        self.password = dictionary["password"] as! String
-        // ssh
+        self.id = dictionary["id"] as? String ?? UUID().uuidString
+        self.name = dictionary["name"] as? String ?? "New Favorite"
+        self.host = dictionary["host"] as? String ?? "127.0.0.1"
+        self.port = dictionary["port"] as? Int ?? 6379
+        self.database = dictionary["database"] as? Int ?? 0
+        self.username = dictionary["username"] as? String ?? ""
+        self.password = dictionary["password"] as? String ?? ""
+        
         let connectionType: String = dictionary["connectionType"] as? String ?? RedisConnectionTypeEnum.TCP.rawValue
         self.connectionType = connectionType
         
@@ -86,6 +99,11 @@ struct RedisModel: Identifiable, Sendable, Hashable {
             self.sshUser = dictionary["sshUser"] as? String ?? ""
             self.sshPass = dictionary["sshPass"] as? String ?? ""
         }
+
+        self.sentinelMasterName = dictionary["sentinelMasterName"] as? String ?? "mymaster"
+        self.sentinelNodes = dictionary["sentinelNodes"] as? String ?? "127.0.0.1:26379"
+        self.sentinelPassword = dictionary["sentinelPassword"] as? String ?? ""
+        self.clusterNodes = dictionary["clusterNodes"] as? String ?? "127.0.0.1:6379"
     }
     
     // MARK: - Equatable
@@ -111,6 +129,9 @@ struct RedisModel: Identifiable, Sendable, Hashable {
         hasher.combine(sshPort)
         hasher.combine(sshUser)
         hasher.combine(sshPass)
-        // image excluded from hash
+        hasher.combine(sentinelMasterName)
+        hasher.combine(sentinelNodes)
+        hasher.combine(sentinelPassword)
+        hasher.combine(clusterNodes)
     }
 }

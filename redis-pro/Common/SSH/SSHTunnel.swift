@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Valkey
 @preconcurrency import NIO
 @preconcurrency import NIOSSH
 import Logging

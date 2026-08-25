@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import Valkey
 
-// MARK: - lua script
+// MARK: - Lua Script Operations
 extension RedisClient {
     func eval(_ lua: String) async throws -> String {
         logger.info("lua script eval: \(lua)")
@@ -37,10 +36,9 @@ extension RedisClient {
             
             logger.info("eval lua script, script: \(script), args: \(argArr)")
             
-            guard (try await getClient()) != nil else { return "eval error" }
-            // EVAL script numkeys key [key ...] arg [arg ...]
-            let res: RESPToken? = try await self.send("EVAL", args: [script] + argArr)
-            return res.map { "\($0)" } ?? "eval error"
+            // EVAL script numkeys [key ...] [arg ...]
+            let reply = try await self.execute(command: "EVAL", args: [script] + argArr)
+            return reply.description
         } catch {
             handleError(error)
         }
@@ -49,25 +47,23 @@ extension RedisClient {
     }
     
     @discardableResult
-    func eval(_ script: String, keys: [String] = [], args: [String] = []) async throws -> RESPToken {
-        guard let client = try await getClient() else { throw BizError("Valkey client not initialized") }
-        return try await client.eval(script: script, keys: keys.map { ValkeyKey($0) }, args: args)
+    func eval(_ script: String, keys: [String] = [], args: [String] = []) async throws -> RedisReply {
+        return try await self.execute(command: "EVAL", args: [script, String(keys.count)] + keys + args)
     }
     
     @discardableResult
-    func evalsha(_ sha1: String, keys: [String] = [], args: [String] = []) async throws -> RESPToken {
-        guard let client = try await getClient() else { throw BizError("Valkey client not initialized") }
-        return try await client.evalsha(sha1: sha1, keys: keys.map { ValkeyKey($0) }, args: args)
+    func evalsha(_ sha1: String, keys: [String] = [], args: [String] = []) async throws -> RedisReply {
+        return try await self.execute(command: "EVALSHA", args: [sha1, String(keys.count)] + keys + args)
     }
 
     func scriptKill() async throws -> String {
         logger.info("lua script kill")
-        let res: RESPToken? = try await self.send("SCRIPT", args: ["KILL"])
-        return res.map { "\($0)" } ?? "script kill error"
+        let reply = try await self.execute(command: "SCRIPT", args: ["KILL"])
+        return reply.description
     }
     
     func scriptFlush() async throws {
         logger.info("lua script flush")
-        _ = try await self.send("SCRIPT", args: ["FLUSH"]) as RESPToken?
+        _ = try await self.execute(command: "SCRIPT", args: ["FLUSH"])
     }
 }

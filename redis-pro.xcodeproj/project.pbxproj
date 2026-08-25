@@ -7,6 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C4000020000000000000001 /* ClusterSentinelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4000010000000000000001 /* ClusterSentinelTests.swift */; };
+		7C1000020000000000000001 /* RedisReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000010000000000000001 /* RedisReply.swift */; };
+		7C1000020000000000000002 /* CRC16.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000010000000000000002 /* CRC16.swift */; };
+		7C1000020000000000000003 /* HiredisConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000010000000000000003 /* HiredisConnection.swift */; };
+		7C1000020000000000000004 /* HiredisStandaloneClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000010000000000000004 /* HiredisStandaloneClient.swift */; };
+		7C1000020000000000000005 /* HiredisSentinelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000010000000000000005 /* HiredisSentinelClient.swift */; };
+		7C1000020000000000000006 /* HiredisClusterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000010000000000000006 /* HiredisClusterClient.swift */; };
+		7C2000020000000000000001 /* hiredis.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000001 /* hiredis.c */; };
+		7C2000020000000000000002 /* read.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000002 /* read.c */; };
+		7C2000020000000000000003 /* sds.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000003 /* sds.c */; };
+		7C2000020000000000000004 /* net.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000004 /* net.c */; };
+		7C2000020000000000000005 /* alloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000005 /* alloc.c */; };
+		7C2000020000000000000006 /* sockcompat.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000006 /* sockcompat.c */; };
+		7C2000020000000000000007 /* async.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000007 /* async.c */; };
+		7C2000020000000000000008 /* dict.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000008 /* dict.c */; };
 		5CA3EBAB0000000000000002 /* CommandQueryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAB0000000000000001 /* CommandQueryStore.swift */; };
 		5CA3EBAB0000000000000004 /* CommandQueryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAB0000000000000003 /* CommandQueryView.swift */; };
 		4301C82F26B0EEB800C08E19 /* Stopwatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4301C82E26B0EEB800C08E19 /* Stopwatch.swift */; };
@@ -76,7 +91,6 @@
 		43F22F0B26A159B900A00F97 /* RedisZSetItemModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F22F0A26A159B900A00F97 /* RedisZSetItemModel.swift */; };
 		43F22F1126A1603F00A00F97 /* StringHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F22F1026A1603F00A00F97 /* StringHelper.swift */; };
 		43F22F1326A5546000A00F97 /* RedisInfoItemModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F22F1226A5546000A00F97 /* RedisInfoItemModel.swift */; };
-		5C35809E2FA8313E008E23C2 /* Valkey in Frameworks */ = {isa = PBXBuildFile; productRef = 5C35809D2FA8313E008E23C2 /* Valkey */; };
 		5CA3EB042F344F530099AC5F /* RedisKeysTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EB032F344F530099AC5F /* RedisKeysTreeView.swift */; };
 		5CA3EB07AABB11EE0099AC5F /* RedisKeysOutlineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EB08AABB11EE0099AC5F /* RedisKeysOutlineView.swift */; };
 		5CA3EB062F344FE00099AC5F /* RedisKeyNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EB052F344FE00099AC5F /* RedisKeyNode.swift */; };
@@ -180,6 +194,22 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7C4000010000000000000001 /* ClusterSentinelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClusterSentinelTests.swift; sourceTree = "<group>"; };
+		7C1000010000000000000001 /* RedisReply.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisReply.swift; sourceTree = "<group>"; };
+		7C1000010000000000000002 /* CRC16.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRC16.swift; sourceTree = "<group>"; };
+		7C1000010000000000000003 /* HiredisConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiredisConnection.swift; sourceTree = "<group>"; };
+		7C1000010000000000000004 /* HiredisStandaloneClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiredisStandaloneClient.swift; sourceTree = "<group>"; };
+		7C1000010000000000000005 /* HiredisSentinelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiredisSentinelClient.swift; sourceTree = "<group>"; };
+		7C1000010000000000000006 /* HiredisClusterClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiredisClusterClient.swift; sourceTree = "<group>"; };
+		7C2000010000000000000001 /* hiredis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hiredis.c; sourceTree = "<group>"; };
+		7C2000010000000000000002 /* read.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = read.c; sourceTree = "<group>"; };
+		7C2000010000000000000003 /* sds.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sds.c; sourceTree = "<group>"; };
+		7C2000010000000000000004 /* net.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net.c; sourceTree = "<group>"; };
+		7C2000010000000000000005 /* alloc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = alloc.c; sourceTree = "<group>"; };
+		7C2000010000000000000006 /* sockcompat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sockcompat.c; sourceTree = "<group>"; };
+		7C2000010000000000000007 /* async.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = async.c; sourceTree = "<group>"; };
+		7C2000010000000000000008 /* dict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dict.c; sourceTree = "<group>"; };
+		7C3000010000000000000001 /* redis-pro-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "redis-pro-Bridging-Header.h"; sourceTree = "<group>"; };
 		5CA3EBAB0000000000000001 /* CommandQueryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandQueryStore.swift; sourceTree = "<group>"; };
 		5CA3EBAB0000000000000003 /* CommandQueryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandQueryView.swift; sourceTree = "<group>"; };
 		4301C82E26B0EEB800C08E19 /* Stopwatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stopwatch.swift; sourceTree = "<group>"; };
@@ -347,7 +377,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5C35809E2FA8313E008E23C2 /* Valkey in Frameworks */,
 				CEA1EF4D277C56DD00D300E9 /* NIO in Frameworks */,
 				CEA1EF4A277C56B100D300E9 /* NIOSSH in Frameworks */,
 				6237D032275C954A000ACD6A /* Logging in Frameworks */,
@@ -368,6 +397,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7C1000000000000000000001 /* Hiredis */ = {
+			isa = PBXGroup;
+			children = (
+				7C1000010000000000000001 /* RedisReply.swift */,
+				7C1000010000000000000002 /* CRC16.swift */,
+				7C1000010000000000000003 /* HiredisConnection.swift */,
+				7C1000010000000000000004 /* HiredisStandaloneClient.swift */,
+				7C1000010000000000000005 /* HiredisSentinelClient.swift */,
+				7C1000010000000000000006 /* HiredisClusterClient.swift */,
+			);
+			path = Hiredis;
+			sourceTree = "<group>";
+		};
+		7C2000000000000000000001 /* Hiredis */ = {
+			isa = PBXGroup;
+			children = (
+				7C2000010000000000000001 /* hiredis.c */,
+				7C2000010000000000000002 /* read.c */,
+				7C2000010000000000000003 /* sds.c */,
+				7C2000010000000000000004 /* net.c */,
+				7C2000010000000000000005 /* alloc.c */,
+				7C2000010000000000000006 /* sockcompat.c */,
+				7C2000010000000000000007 /* async.c */,
+				7C2000010000000000000008 /* dict.c */,
+			);
+			path = Hiredis/src;
+			sourceTree = "<group>";
+		};
 		4301C84326BBE66F00C08E19 /* SSH */ = {
 			isa = PBXGroup;
 			children = (
@@ -488,6 +545,7 @@
 		434047F72611C1D5001519F9 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				7C2000000000000000000001 /* Hiredis */,
 				62283B222B52686E00782720 /* NIO */,
 				62E3DCB028B0C90300FF865A /* Enums */,
 				6240E0A92803035F0005E793 /* UserDefaults */,
@@ -577,6 +635,7 @@
 		620AF6B427D485A1002D6895 /* RedisClient */ = {
 			isa = PBXGroup;
 			children = (
+				7C1000000000000000000001 /* Hiredis */,
 				4314A34E2625B46E00053FEE /* RedisClient.swift */,
 				6280596728B218D800126E81 /* RedisClientString.swift */,
 				620AF6B727D486F5002D6895 /* RedisClientScan.swift */,
@@ -611,6 +670,7 @@
 		623E46C22B66534F00C28904 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				7C4000010000000000000001 /* ClusterSentinelTests.swift */,
 				62BDAB2D293B040C00ADA406 /* Tests.swift */,
 				623E46C52B66542C00C28904 /* CodableTest.swift */,
 			);
@@ -797,7 +857,6 @@
 				CEA1EF50277C56DD00D300E9 /* NIOCore */,
 				A10000020000000000000002 /* SwiftTreeSitter */,
 				A20000020000000000000002 /* TreeSitterJSON */,
-				5C35809D2FA8313E008E23C2 /* Valkey */,
 			);
 			productName = "redis-pro";
 			productReference = 4320AAF025B6740900A8E214 /* redis-pro.app */;
@@ -856,7 +915,6 @@
 				CEA1EF4B277C56DD00D300E9 /* XCRemoteSwiftPackageReference "swift-nio" */,
 				A10000010000000000000001 /* XCRemoteSwiftPackageReference "swift-tree-sitter" */,
 				A20000010000000000000001 /* XCRemoteSwiftPackageReference "tree-sitter-json" */,
-				5C35809C2FA7D8CF008E23C2 /* XCRemoteSwiftPackageReference "valkey-swift" */,
 			);
 			productRefGroup = 4320AAF125B6740900A8E214 /* Products */;
 			projectDirPath = "";
@@ -894,6 +952,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C1000020000000000000001 /* RedisReply.swift in Sources */,
+				7C1000020000000000000002 /* CRC16.swift in Sources */,
+				7C1000020000000000000003 /* HiredisConnection.swift in Sources */,
+				7C1000020000000000000004 /* HiredisStandaloneClient.swift in Sources */,
+				7C1000020000000000000005 /* HiredisSentinelClient.swift in Sources */,
+				7C1000020000000000000006 /* HiredisClusterClient.swift in Sources */,
+				7C2000020000000000000001 /* hiredis.c in Sources */,
+				7C2000020000000000000002 /* read.c in Sources */,
+				7C2000020000000000000003 /* sds.c in Sources */,
+				7C2000020000000000000004 /* net.c in Sources */,
+				7C2000020000000000000005 /* alloc.c in Sources */,
+				7C2000020000000000000006 /* sockcompat.c in Sources */,
+				7C2000020000000000000007 /* async.c in Sources */,
+				7C2000020000000000000008 /* dict.c in Sources */,
 				5CA3EBAB0000000000000002 /* CommandQueryStore.swift in Sources */,
 				5CA3EBAB0000000000000004 /* CommandQueryView.swift in Sources */,
 				43F22EEF269EDF7B00A00F97 /* SlowLogModel.swift in Sources */,
@@ -1205,6 +1277,16 @@
 		4320AB0125B6740A00A8E214 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include/hiredis",
+				);
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include",
+				);
+				SWIFT_OBJC_BRIDGING_HEADER = "redis-pro/redis-pro-Bridging-Header.h";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "redis-pro/redis_pro.entitlements";
@@ -1238,6 +1320,16 @@
 		4320AB0225B6740A00A8E214 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include/hiredis",
+				);
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include",
+				);
+				SWIFT_OBJC_BRIDGING_HEADER = "redis-pro/redis-pro-Bridging-Header.h";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "redis-pro/redis-proRelease.entitlements";
@@ -1272,6 +1364,16 @@
 		62BDAB31293B040C00ADA406 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include/hiredis",
+				);
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include",
+				);
+				SWIFT_OBJC_BRIDGING_HEADER = "redis-pro/redis-pro-Bridging-Header.h";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
@@ -1295,6 +1397,16 @@
 		62BDAB32293B040C00ADA406 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include/hiredis",
+				);
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/redis-pro/Common/Hiredis/include",
+				);
+				SWIFT_OBJC_BRIDGING_HEADER = "redis-pro/redis-pro-Bridging-Header.h";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
@@ -1348,14 +1460,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		5C35809C2FA7D8CF008E23C2 /* XCRemoteSwiftPackageReference "valkey-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/valkey-io/valkey-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.3.2;
-			};
-		};
 		6237D030275C954A000ACD6A /* XCRemoteSwiftPackageReference "swift-log" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-log.git";
@@ -1399,11 +1503,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5C35809D2FA8313E008E23C2 /* Valkey */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5C35809C2FA7D8CF008E23C2 /* XCRemoteSwiftPackageReference "valkey-swift" */;
-			productName = Valkey;
-		};
 		6237D031275C954A000ACD6A /* Logging */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 6237D030275C954A000ACD6A /* XCRemoteSwiftPackageReference "swift-log" */;

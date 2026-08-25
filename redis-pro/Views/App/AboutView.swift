@@ -10,7 +10,7 @@ import SwiftUI
 struct AboutView: View {
 
     private let dependencies: [(String, String)] = [
-        ("Valkey", "https://github.com/valkey-io/valkey-swift"),
+        ("hiredis", "https://github.com/redis/hiredis"),
         ("NIOSSH", "https://github.com/apple/swift-nio-ssh"),
         ("SwiftTreeSitter", "https://github.com/tree-sitter/swift-tree-sitter"),
         ("TreeSitterJSON", "https://github.com/tree-sitter/tree-sitter-json"),

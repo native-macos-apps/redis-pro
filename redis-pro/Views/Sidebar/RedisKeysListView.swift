@@ -152,6 +152,26 @@ struct RedisKeysListView: View {
 
     // MARK: - Connection Info Badge
 
+    private var connectionIcon: String {
+        switch viewModel.redisModel.connectionType.lowercased() {
+        case "ssh": return "lock.fill"
+        case "sentinel": return "shield.lefthalf.filled"
+        case "cluster": return "circle.hexagongrid.fill"
+        default: return "network"
+        }
+    }
+
+    private var connectionAddressText: String {
+        switch viewModel.redisModel.connectionType.lowercased() {
+        case "sentinel":
+            return "Sentinel: \(viewModel.redisModel.sentinelMasterName)"
+        case "cluster":
+            return "Cluster: \(viewModel.redisModel.clusterNodes)"
+        default:
+            return "\(viewModel.redisModel.host):\(String(viewModel.redisModel.port))"
+        }
+    }
+
     private var connectionInfoBadge: some View {
         HStack() {
             Circle()
@@ -159,7 +179,7 @@ struct RedisKeysListView: View {
                 .frame(width: 6, height: 6)
                 .shadow(color: Color.green.opacity(0.6), radius: 2)
             
-            Image(systemName: viewModel.redisModel.connectionType.lowercased() == "ssh" ? "lock.fill" : "network")
+            Image(systemName: connectionIcon)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(.secondary)
             
@@ -172,9 +192,10 @@ struct RedisKeysListView: View {
                     .font(.system(size: 9))
                     .foregroundStyle(.tertiary)
                 
-                Text("\(viewModel.redisModel.host):\(String(viewModel.redisModel.port))")
+                Text(connectionAddressText)
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }.padding(.horizontal)
     }

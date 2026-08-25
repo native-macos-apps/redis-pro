@@ -6,19 +6,30 @@
 //
 
 import Foundation
-import Valkey
 import Logging
 
-// MARK: - keys function
+// MARK: - Key Operations
 extension RedisClient {
     
     private func keyScan(cursor: Int, keywords: String?, count: Int? = 1) async throws -> (cursor: Int, keys: [String]) {
         logger.debug("redis keys scan, cursor: \(cursor), keywords: \(String(describing: keywords)), count:\(String(describing: count))")
         
-        let client = try await getClient()
-        let result = try await client?.scan(cursor: cursor, pattern: keywords, count: count)
-        let keys = result?.keys.map { String(fromValkeyValue: $0) } ?? []
-        return (result?.cursor ?? 0, keys)
+        var args = [String(cursor)]
+        if let match = keywords, !match.isEmpty {
+            args += ["MATCH", match]
+        }
+        if let count = count {
+            args += ["COUNT", String(count)]
+        }
+        
+        let reply = try await execute(command: "SCAN", args: args)
+        guard let arr = reply.arrayValue, arr.count >= 2 else {
+            return (0, [])
+        }
+        
+        let newCursor = arr[0].intValue ?? 0
+        let keys = arr[1].arrayValue?.compactMap { $0.stringValue } ?? []
+        return (newCursor, keys)
     }
     
     private func countScan(cursor: Int, keywords: String?, count: Int? = 1) async throws -> (cursor: Int, count: Int) {
@@ -50,7 +61,7 @@ extension RedisClient {
         return count
     }
     
-    /// 分页查询 key
+    /// Scan page of keys
     private func keysPageScan(_ page: Page) async throws -> [String] {
         let keywords = page.keywords.isEmpty ? nil : page.keywords
         var end: Int = page.end
@@ -221,7 +232,7 @@ extension RedisClient {
     }
 
     func memoryUsage(_ key: String) async throws -> Int {
-        let r: Int? = try await send("MEMORY", args: ["USAGE", key])
-        return r ?? 0
+        let reply = try await execute(command: "MEMORY", args: ["USAGE", key])
+        return reply.intValue ?? 0
     }
 }

@@ -2,8 +2,7 @@
 //  LoginForm.swift
 //  redis-pro
 //
-//  Native macOS connection form.
-//  Single-screen layout: Connection fields + SSH Tunnel toggle (no tabs).
+//  Native macOS connection form supporting Standalone, SSH Tunnel, Sentinel, and Cluster.
 //
 
 import SwiftUI
@@ -14,23 +13,12 @@ struct LoginForm: View {
     @Environment(\.dismiss) private var dismiss
     @State var viewModel: LoginViewModel
 
-    // MARK: - SSH binding
-
-    private var sshEnabled: Binding<Bool> {
+    private var selectedConnectionType: Binding<RedisConnectionTypeEnum> {
         Binding(
-            get: { viewModel.connectionType == RedisConnectionTypeEnum.SSH.rawValue },
-            set: { viewModel.connectionType = $0
-                ? RedisConnectionTypeEnum.SSH.rawValue
-                : RedisConnectionTypeEnum.TCP.rawValue
-            }
+            get: { RedisConnectionTypeEnum(rawValue: viewModel.connectionType) ?? .TCP },
+            set: { viewModel.connectionType = $0.rawValue }
         )
     }
-
-    private var useSSH: Bool {
-        viewModel.connectionType == RedisConnectionTypeEnum.SSH.rawValue
-    }
-
-    // MARK: - Body
 
     var body: some View {
         VStack(spacing: 0) {
@@ -38,54 +26,93 @@ struct LoginForm: View {
             Divider()
             footer
         }
-        .frame(width: 480, height: useSSH ? 560 : 400)
-        .animation(.easeInOut(duration: 0.22), value: useSSH)
+        .frame(width: 500, height: formHeight)
+        .animation(.easeInOut(duration: 0.22), value: viewModel.connectionType)
+    }
+
+    private var formHeight: CGFloat {
+        switch viewModel.connectionType {
+        case RedisConnectionTypeEnum.SSH.rawValue: return 580
+        case RedisConnectionTypeEnum.SENTINEL.rawValue: return 520
+        case RedisConnectionTypeEnum.CLUSTER.rawValue: return 450
+        default: return 440
+        }
     }
 
     // MARK: - Form
 
     private var formContent: some View {
         Form {
-            // ── Connection ───────────────────────────────────────────────
-            Section("Connection") {
-                TextField("Name", text: $viewModel.name)
-                TextField("Host", text: $viewModel.host)
-                TextField("Port", value: $viewModel.port, format: .number)
-                TextField("Username", text: $viewModel.username)
-                SecureField("Password", text: $viewModel.password)
-                TextField("Database", value: $viewModel.database, format: .number)
+            // ── Connection Mode ───────────────────────────────────────────
+            Section {
+                Picker("Connection Mode", selection: selectedConnectionType) {
+                    ForEach(RedisConnectionTypeEnum.allCases) { type in
+                        Text(type.title).tag(type)
+                    }
+                }
+                .pickerStyle(.segmented)
             }
 
-            // ── SSH Tunnel ───────────────────────────────────────────────
-            Section {
-                Toggle("SSH Tunnel", isOn: sshEnabled)
-                    .toggleStyle(.switch)
+            // ── Basic Info ────────────────────────────────────────────────
+            Section("General") {
+                TextField("Favorite Name", text: $viewModel.name)
+            }
 
-                if useSSH {
+            // ── Connection-specific Fields ────────────────────────────────
+            switch selectedConnectionType.wrappedValue {
+            case .TCP:
+                Section("Redis Server") {
+                    TextField("Host", text: $viewModel.host)
+                    TextField("Port", value: $viewModel.port, format: .number)
+                    TextField("Username", text: $viewModel.username)
+                    SecureField("Password", text: $viewModel.password)
+                    TextField("Database", value: $viewModel.database, format: .number)
+                }
+
+            case .SSH:
+                Section("Target Redis Server") {
+                    TextField("Host", text: $viewModel.host)
+                    TextField("Port", value: $viewModel.port, format: .number)
+                    TextField("Username", text: $viewModel.username)
+                    SecureField("Password", text: $viewModel.password)
+                    TextField("Database", value: $viewModel.database, format: .number)
+                }
+                Section("SSH Tunnel") {
                     TextField("SSH Host", text: $viewModel.sshHost)
                     TextField("SSH Port", value: $viewModel.sshPort, format: .number)
                     TextField("SSH Username", text: $viewModel.sshUser)
                     SecureField("SSH Password", text: $viewModel.sshPass)
                 }
-            } header: {
-                Text("SSH Tunnel")
-            } footer: {
-                if !useSSH {
-                    Text("Enable to route the connection through an SSH server.")
-                        .foregroundStyle(.secondary)
+
+            case .SENTINEL:
+                Section("Sentinel Configuration") {
+                    TextField("Master Name", text: $viewModel.sentinelMasterName)
+                    TextField("Sentinel Nodes (comma separated)", text: $viewModel.sentinelNodes)
+                    SecureField("Sentinel Password (optional)", text: $viewModel.sentinelPassword)
+                }
+                Section("Redis Master Authentication") {
+                    TextField("Username", text: $viewModel.username)
+                    SecureField("Password", text: $viewModel.password)
+                    TextField("Database", value: $viewModel.database, format: .number)
+                }
+
+            case .CLUSTER:
+                Section("Cluster Configuration") {
+                    TextField("Cluster Seed Nodes (comma separated)", text: $viewModel.clusterNodes)
+                    TextField("Username", text: $viewModel.username)
+                    SecureField("Password", text: $viewModel.password)
                 }
             }
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
-        .animation(.easeInOut(duration: 0.22), value: useSSH)
     }
 
     // MARK: - Footer
 
     private var footer: some View {
         HStack(spacing: 10) {
-            // Status / loading (left side — always present via Spacer)
+            // Status / loading
             if viewModel.loading {
                 HStack(spacing: 6) {
                     ProgressView()
@@ -105,9 +132,9 @@ struct LoginForm: View {
                     )
             }
 
-            Spacer() // always pushes buttons to the right
+            Spacer()
 
-            // Actions — always pinned right
+            // Actions
             Button("Cancel") {
                 dismiss()
             }

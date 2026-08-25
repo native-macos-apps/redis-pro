@@ -1,0 +1,10 @@
+module CHiredis [system] {
+    header "hiredis/hiredis.h"
+    header "hiredis/read.h"
+    header "hiredis/sds.h"
+    header "hiredis/net.h"
+    header "hiredis/alloc.h"
+    header "hiredis/sockcompat.h"
+    header "hiredis/async.h"
+    export *
+}

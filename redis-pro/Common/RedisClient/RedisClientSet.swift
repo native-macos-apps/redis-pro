@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import Valkey
 
-// MARK: - set function
+// MARK: - Set Operations
 extension RedisClient {
     
     func pageSet(_ key: String, page: Page) async throws -> ([String], Page) {
@@ -93,18 +92,26 @@ extension RedisClient {
     
     func _sscan(_ key: String, keywords: String?, cursor: Int, count: Int = 1) async throws -> (cursor: Int, elements: [String]) {
         logger.debug("redis set scan, key: \(key) cursor: \(cursor), keywords: \(String(describing: keywords)), count:\(String(describing: count))")
-        let client = try await getClient()
+        var args = [key, String(cursor)]
+        if let match = keywords, !match.isEmpty {
+            args += ["MATCH", match]
+        }
+        args += ["COUNT", String(count)]
         
-        let res = try await client?.sscan(ValkeyKey(key), cursor: cursor, pattern: keywords, count: count)
-        let elements = res?.elements.map { String(fromValkeyValue: $0) } ?? []
-        return (res?.cursor ?? 0, elements)
+        let reply = try await execute(command: "SSCAN", args: args)
+        guard let arr = reply.arrayValue, arr.count >= 2 else {
+            return (0, [])
+        }
+        
+        let newCursor = arr[0].intValue ?? 0
+        let elements = arr[1].arrayValue?.compactMap { $0.stringValue } ?? []
+        return (newCursor, elements)
     }
     
     private func _sexist(_ key: String, ele: String?) async throws -> Bool {
         guard let ele = ele else { return false }
-        let client = try await getClient()
-        let res = try await client?.sismember(ValkeyKey(key), member: ele)
-        return res == 1
+        let reply = try await execute(command: "SISMEMBER", args: [key, ele])
+        return reply.intValue == 1
     }
     
     func supdate(_ key: String, from: String, to: String) async throws -> Int {
@@ -135,17 +142,17 @@ extension RedisClient {
     }
     
     private func _scard(_ key: String) async throws -> Int {
-        let client = try await getClient()
-        return try await client?.scard(ValkeyKey(key)) ?? 0
+        let reply = try await execute(command: "SCARD", args: [key])
+        return reply.intValue ?? 0
     }
     
     private func _srem(_ key: String, ele: String) async throws -> Int {
-        let client = try await getClient()
-        return try await client?.srem(ValkeyKey(key), members: [ele]) ?? 0
+        let reply = try await execute(command: "SREM", args: [key, ele])
+        return reply.intValue ?? 0
     }
     
     private func _sadd(_ key: String, ele: String) async throws -> Int {
-        let client = try await getClient()
-        return try await client?.sadd(ValkeyKey(key), members: [ele]) ?? 0
+        let reply = try await execute(command: "SADD", args: [key, ele])
+        return reply.intValue ?? 0
     }
 }
