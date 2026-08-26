@@ -41,22 +41,6 @@ extension RedisClient {
         return reply.isOK
     }
     
-    func clientKill(_ clientModel: ClientModel) async throws -> Bool {
-        let reply = try await execute(command: "CLIENT", args: ["KILL", clientModel.addr])
-        return reply.isOK
-    }
-    
-    func clientList() async throws -> [ClientModel] {
-        let reply = try await execute(command: "CLIENT", args: ["LIST"])
-        let listStr = reply.stringValue ?? ""
-        return ClientModel.parse(listStr)
-    }
-    
-    func info() async throws -> [RedisInfoModel] {
-        let reply = try await execute(command: "INFO", args: [])
-        return RedisInfoModel.parse(reply.stringValue ?? "")
-    }
-    
     func resetState() async throws -> Bool {
         logger.info("reset state...")
         self.close()

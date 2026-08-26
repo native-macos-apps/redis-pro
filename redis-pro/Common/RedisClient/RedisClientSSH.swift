@@ -46,8 +46,8 @@ extension RedisClient {
     func closeSSH() {
         self.sshTunnel?.close()
         self.sshTunnel = nil
-        self.sshLocalChannel?.close(mode: .all)
-        self.sshChannel?.close(mode: .all)
+        _ = self.sshLocalChannel?.close(mode: .all)
+        _ = self.sshChannel?.close(mode: .all)
         self.sshLocalChannel = nil
         self.sshChannel = nil
     }

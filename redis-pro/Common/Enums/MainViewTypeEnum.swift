@@ -12,6 +12,5 @@ enum MainViewTypeEnum{
     case NONE
     // 编辑器
     case EDITOR
-    case SYSTEM
     case QUERY
 }

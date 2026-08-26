@@ -1164,6 +1164,7 @@ struct CommandQueryTextEditor: NSViewRepresentable {
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         let textView = nsView.documentView as! NSTextView
         let coordinator = context.coordinator
+        coordinator.parent = self
         
         // Sync dynamic command set when COMMAND LIST arrives; re-highlight immediately
         let newSet: Set<String>? = commandNames.isEmpty ? nil : Set(commandNames)
@@ -1334,7 +1335,12 @@ struct CommandQueryTextEditor: NSViewRepresentable {
             }
             
             if parent.selectedCommand != commandToExecute {
-                parent.selectedCommand = commandToExecute
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    if self.parent.selectedCommand != commandToExecute {
+                        self.parent.selectedCommand = commandToExecute
+                    }
+                }
             }
         }
     }

@@ -30,17 +30,6 @@ struct RedisKeysListView: View {
             ToolbarItem(placement: .principal) {
                 connectionInfoBadge
             }
-            ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    Button("Redis Info")   { viewModel.redisSystem.setSystemView(.REDIS_INFO) }
-                    Button("Redis Config") { viewModel.redisSystem.setSystemView(.REDIS_CONFIG) }
-                    Button("Clients")      { viewModel.redisSystem.setSystemView(.CLIENT_LIST) }
-                    Button("Slow Log")     { viewModel.redisSystem.setSystemView(.SLOW_LOG) }
-                    Button("Lua")          { viewModel.redisSystem.setSystemView(.LUA) }
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                }
-            }
         }
         .sheet(isPresented: addKeySheetBinding) {
             AddKeySheet(viewModel: viewModel.addKey)
@@ -139,8 +128,6 @@ struct RedisKeysListView: View {
             switch viewModel.mainViewType {
             case .EDITOR:
                 RedisValueView(viewModel: viewModel.value)
-            case .SYSTEM:
-                RedisSystemView(viewModel: viewModel.redisSystem)
             case .QUERY:
                 CommandQueryView(viewModel: viewModel.commandQuery)
             case .NONE:
