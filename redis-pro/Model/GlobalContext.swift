@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Valkey
 
 class GlobalContext:ObservableObject, CustomStringConvertible {
     @Published var alertVisible:Bool = false
@@ -28,8 +27,6 @@ class GlobalContext:ObservableObject, CustomStringConvertible {
         
         if let bizError = error as? BizError {
             alertMessage = bizError.message
-        } else if let valkeyError = error as? ValkeyClientError {
-            alertMessage = valkeyError.message ?? "Valkey error"
         } else {
             alertMessage = "\(error)"
         }

@@ -9,14 +9,8 @@
 import SwiftUI
 import Logging
 
-enum StringViewMode: String, CaseIterable {
-    case plain = "Plain Text"
-    case json = "JSON"
-}
-
 struct StringEditorView: View {
     @State var viewModel: ValueViewModel
-    @State private var viewMode: StringViewMode = .plain
     @FocusState private var isFocused: Bool
     private let logger = Logger(label: "string-editor")
 
@@ -24,28 +18,6 @@ struct StringEditorView: View {
         let vm = viewModel.stringValue
         VStack(alignment: .leading, spacing: 0) {
             editorArea(vm: vm)
-
-            // Footer
-            HStack(alignment: .center, spacing: 6) {
-                KeyObjectBar(viewModel: viewModel.keyObject)
-
-                Spacer()
-
-                Picker("", selection: $viewMode) {
-                    ForEach(StringViewMode.allCases, id: \.self) { mode in
-                        Text(mode.rawValue).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 150)
-
-                Button(action: { vm.submit() }) {
-                    Label("Submit", systemImage: "checkmark")
-                }
-            }
-            .padding(.horizontal, 16)
-            .background(.ultraThinMaterial)
-            .frame(height: 30)
         }
         .onAppear {
             logger.info("redis string value editor view appear ...")
@@ -56,7 +28,7 @@ struct StringEditorView: View {
 
     @ViewBuilder
     private func editorArea(vm: StringValueViewModel) -> some View {
-        if viewMode == .json {
+        if vm.viewMode == .json {
             // JSON mode: show formatted + syntax-highlighted attributed string (read-only display)
             // while keeping a hidden editable TextEditor in sync for actual editing
             jsonEditorArea(vm: vm)

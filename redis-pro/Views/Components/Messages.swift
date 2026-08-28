@@ -8,7 +8,6 @@
 import Foundation
 import Cocoa
 import Logging
-import Valkey
 
 /// Thread-safe alert helpers.
 /// All methods dispatch work on the main actor to avoid race conditions
@@ -69,8 +68,6 @@ class Messages {
         let message: String
         if let biz = error as? BizError {
             message = biz.message
-        } else if let redis = error as? ValkeyClientError {
-            message = redis.message ?? redis.description
         } else {
             message = "\(error)"
         }

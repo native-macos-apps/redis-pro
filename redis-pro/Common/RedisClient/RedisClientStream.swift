@@ -6,10 +6,8 @@
 //
 
 import Foundation
-import Valkey
 
-// MARK: - stream function
-// stream
+// MARK: - Stream Operations
 extension RedisClient {
     
 }

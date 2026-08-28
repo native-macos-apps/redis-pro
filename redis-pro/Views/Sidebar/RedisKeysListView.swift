@@ -30,17 +30,6 @@ struct RedisKeysListView: View {
             ToolbarItem(placement: .principal) {
                 connectionInfoBadge
             }
-            ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    Button("Redis Info")   { viewModel.redisSystem.setSystemView(.REDIS_INFO) }
-                    Button("Redis Config") { viewModel.redisSystem.setSystemView(.REDIS_CONFIG) }
-                    Button("Clients")      { viewModel.redisSystem.setSystemView(.CLIENT_LIST) }
-                    Button("Slow Log")     { viewModel.redisSystem.setSystemView(.SLOW_LOG) }
-                    Button("Lua")          { viewModel.redisSystem.setSystemView(.LUA) }
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                }
-            }
         }
         .sheet(isPresented: addKeySheetBinding) {
             AddKeySheet(viewModel: viewModel.addKey)
@@ -139,8 +128,6 @@ struct RedisKeysListView: View {
             switch viewModel.mainViewType {
             case .EDITOR:
                 RedisValueView(viewModel: viewModel.value)
-            case .SYSTEM:
-                RedisSystemView(viewModel: viewModel.redisSystem)
             case .QUERY:
                 CommandQueryView(viewModel: viewModel.commandQuery)
             case .NONE:
@@ -152,6 +139,26 @@ struct RedisKeysListView: View {
 
     // MARK: - Connection Info Badge
 
+    private var connectionIcon: String {
+        switch viewModel.redisModel.connectionType.lowercased() {
+        case "ssh": return "lock.fill"
+        case "sentinel": return "shield.lefthalf.filled"
+        case "cluster": return "circle.hexagongrid.fill"
+        default: return "network"
+        }
+    }
+
+    private var connectionAddressText: String {
+        switch viewModel.redisModel.connectionType.lowercased() {
+        case "sentinel":
+            return "Sentinel: \(viewModel.redisModel.sentinelMasterName)"
+        case "cluster":
+            return "Cluster: \(viewModel.redisModel.clusterNodes)"
+        default:
+            return "\(viewModel.redisModel.host):\(String(viewModel.redisModel.port))"
+        }
+    }
+
     private var connectionInfoBadge: some View {
         HStack() {
             Circle()
@@ -159,7 +166,7 @@ struct RedisKeysListView: View {
                 .frame(width: 6, height: 6)
                 .shadow(color: Color.green.opacity(0.6), radius: 2)
             
-            Image(systemName: viewModel.redisModel.connectionType.lowercased() == "ssh" ? "lock.fill" : "network")
+            Image(systemName: connectionIcon)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(.secondary)
             
@@ -172,9 +179,10 @@ struct RedisKeysListView: View {
                     .font(.system(size: 9))
                     .foregroundStyle(.tertiary)
                 
-                Text("\(viewModel.redisModel.host):\(String(viewModel.redisModel.port))")
+                Text(connectionAddressText)
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }.padding(.horizontal)
     }

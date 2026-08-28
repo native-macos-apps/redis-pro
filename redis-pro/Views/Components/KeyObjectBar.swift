@@ -14,28 +14,28 @@ struct KeyObjectBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 2) {
+            HStack(spacing: 4) {
                 Text("Encoding:")
-                    .font(.system(.body))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
                 
                 Text(viewModel.encoding.isEmpty ? "–" : viewModel.encoding)
-                    .font(.system(.body))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.primary)
                     .help("Internal Redis encoding")
             }
             
-            HStack(spacing: 2) {
+            HStack(spacing: 4) {
                 Text("Memory:")
-                    .font(.system(.body))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
                 
                 Text(viewModel.memorySize)
-                    .font(.system(.body))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.primary)
                     .help("Memory usage (approximate)")
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 4)
     }
 }

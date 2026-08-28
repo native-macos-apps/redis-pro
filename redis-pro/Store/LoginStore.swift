@@ -24,17 +24,30 @@ final class LoginViewModel {
     var password: String = ""
     var connectionType: String = "tcp"
 
-    // ssh
+    // SSH
     var sshHost: String = ""
     var sshPort: Int = 22
     var sshUser: String = ""
     var sshPass: String = ""
 
+    // Sentinel
+    var sentinelMasterName: String = "mymaster"
+    var sentinelNodes: String = "127.0.0.1:26379"
+    var sentinelPassword: String = ""
+
+    // Cluster
+    var clusterNodes: String = "127.0.0.1:6379"
+
     var pingR: String = ""
     var loading: Bool = false
 
     var height: CGFloat {
-        connectionType == RedisConnectionTypeEnum.SSH.rawValue ? 500 : 380
+        switch connectionType {
+        case RedisConnectionTypeEnum.SSH.rawValue: return 560
+        case RedisConnectionTypeEnum.SENTINEL.rawValue: return 500
+        case RedisConnectionTypeEnum.CLUSTER.rawValue: return 450
+        default: return 420
+        }
     }
 
     // Callbacks replacing TCA action propagation
@@ -55,6 +68,10 @@ final class LoginViewModel {
             m.sshPort = sshPort
             m.sshUser = sshUser
             m.sshPass = sshPass
+            m.sentinelMasterName = sentinelMasterName
+            m.sentinelNodes = sentinelNodes
+            m.sentinelPassword = sentinelPassword
+            m.clusterNodes = clusterNodes
             return m
         }
         set(n) {
@@ -70,6 +87,10 @@ final class LoginViewModel {
             sshPort = n.sshPort
             sshUser = n.sshUser
             sshPass = n.sshPass
+            sentinelMasterName = n.sentinelMasterName
+            sentinelNodes = n.sentinelNodes
+            sentinelPassword = n.sentinelPassword
+            clusterNodes = n.clusterNodes
         }
     }
 
@@ -90,12 +111,12 @@ final class LoginViewModel {
     }
 
     func testConnect() {
-        logger.info("test connect to redis server, name: \(name), host: \(host)")
+        logger.info("test connect to redis server, name: \(name), type: \(connectionType)")
         loading = true
         let model = redisModel
         Task {
             let r = await redisInstance.testConnect(model)
-            pingR = r ? "Connect successed!" : "Connect fail! "
+            pingR = r ? "Connect succeeded!" : "Connect failed! "
             loading = false
         }
     }

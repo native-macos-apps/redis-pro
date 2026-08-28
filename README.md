@@ -5,17 +5,18 @@
 ![platforms](https://img.shields.io/badge/Platforms-macOS-orange.svg?style=flat)
 
 ## Intro
-* **Redis Pro** is a modern, lightweight, and blazing-fast Redis & Valkey management client designed natively for macOS.
+* **Redis Pro** is a modern, lightweight, and blazing-fast Redis management client designed natively for macOS.
 * Crafted with a premium **Liquid Glass** aesthetic (glassmorphism), the user interface provides a visually stunning, responsive, and tactile experience.
-* Built on a high-performance **Swift 6 / NIO-based architecture**, it delivers unmatched fluid navigation even when handling massive datasets.
+* Powered by native **hiredis (C/C++)** for 100% Redis compatibility and high throughput, paired with a modern **Swift 6 / async-await architecture**.
 
 ## Features
 - [x] **Liquid Glass UI**: Stunning glassmorphism design optimized for macOS, supporting dynamic light and dark modes with a curated, premium color palette.
+- [x] **Redis Cluster & Sentinel Support**: Native support for Redis Cluster (slot routing, MOVED/ASK redirect handling) and Redis Sentinel (automatic master discovery and failover).
 - [x] **Hierarchical Key Navigation**: Native virtualized tree view for lightning-fast key scanning, filtering, and navigation.
 - [x] **Geospatial (GEOPOS) Mapping**: Dedicated CoordinateBox components and visual modal for viewing latitude/longitude coordinates of Sorted Set (ZSet) members, complete with one-click copying.
 - [x] **Lua Script Evaluation**: Execute Lua scripts directly inside the application, inspect results, and manage script cache (Flush, Eval).
 - [x] **Secure SSH Tunneling**: Full support for secure remote database connections via built-in high-performance SSH tunnels.
-- [x] **Valkey & Redis Support**: Fully compatible with Valkey and Redis 3.x to 7.x.
+- [x] **Redis 3.x to 8.x Support**: Native protocol compatibility powered by official `hiredis` C engine.
 - [x] **Real-time Diagnostics**: Slow log analysis, system config editor, and live server info metric visualization.
 - [x] **Client Management**: Real-time listing, monitoring, and dynamic termination of active client connections.
 - [x] **Batch Operations**: Perform high-speed bulk deletions of keys matching specific patterns.
@@ -28,10 +29,10 @@
 
 ## Roadmap
 - [x] SSH key-based (private key) authentication
-- [ ] Cluster & Sentinel support
+- [x] Cluster & Sentinel support
 
 ## Dependencies
-* [ValkeySwift](https://github.com/valkey-io/valkey-swift): High-performance, NIO-based Redis & Valkey client for Swift.
+* [hiredis](https://github.com/redis/hiredis): Official minimalistic C client library for the Redis database.
 * [swift-nio](https://github.com/apple/swift-nio): Event-driven asynchronous network application framework.
 * [swift-nio-ssh](https://github.com/apple/swift-nio-ssh): Native, performant Swift SSH implementation.
 * [swift-log](https://github.com/apple/swift-log): Swift standard logging API.

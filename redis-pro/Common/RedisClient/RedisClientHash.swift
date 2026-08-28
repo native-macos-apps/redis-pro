@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import Valkey
 
-// MARK: - hash function
+// MARK: - Hash Operations
 extension RedisClient {
     
     func pageHash(_ key: String, page: Page) async throws -> ([RedisHashEntryModel], Page) {
@@ -45,13 +44,14 @@ extension RedisClient {
     }
     
     func hset(key: String, field: String, value: String) async throws -> Int {
-        let client = try await getClient()
-        return try await client?.hset(ValkeyKey(key), data: [HSET<String, String>.Data(field: field, value: value)]) ?? 0
+        let reply = try await execute(command: "HSET", args: [key, field, value])
+        return reply.intValue ?? 0
     }
     
     func hdel(key: String, fields: [String]) async throws -> Int {
-        let client = try await getClient()
-        return try await client?.hdel(ValkeyKey(key), fields: fields) ?? 0
+        guard !fields.isEmpty else { return 0 }
+        let reply = try await execute(command: "HDEL", args: [key] + fields)
+        return reply.intValue ?? 0
     }
     
     private func _hashCountScan(_ key: String, keywords: String?) async throws -> Int {
@@ -103,25 +103,48 @@ extension RedisClient {
     }
     
     private func hlen(key: String) async throws -> Int {
-        let client = try await getClient()
-        return try await client?.hlen(ValkeyKey(key)) ?? 0
+        let reply = try await execute(command: "HLEN", args: [key])
+        return reply.intValue ?? 0
     }
     
     func hscan(key: String, cursor: Int, pattern: String?, count: Int?) async throws -> (Int, [(String, String)]) {
-        let client = try await getClient()
-        let result = try await client?.hscan(ValkeyKey(key), cursor: cursor, pattern: pattern, count: count)
-        
-        var elements: [(String, String)] = []
-        if let members = try? result?.members.withValues() {
-            elements = members.map { (String($0.field), String($0.value)) }
+        var args = [key, String(cursor)]
+        if let pattern = pattern, !pattern.isEmpty {
+            args += ["MATCH", pattern]
+        }
+        if let count = count {
+            args += ["COUNT", String(count)]
         }
         
-        return (result?.cursor ?? 0, elements)
+        let reply = try await execute(command: "HSCAN", args: args)
+        guard let arr = reply.arrayValue, arr.count >= 2 else {
+            return (0, [])
+        }
+        
+        let newCursor = arr[0].intValue ?? 0
+        var elements: [(String, String)] = []
+        
+        if let items = arr[1].arrayValue {
+            var i = 0
+            while i + 1 < items.count {
+                if let k = items[i].stringValue, let v = items[i + 1].stringValue {
+                    elements.append((k, v))
+                }
+                i += 2
+            }
+        } else if let map = arr[1].mapValue {
+            for (k, v) in map {
+                if let keyStr = k.stringValue, let valStr = v.stringValue {
+                    elements.append((keyStr, valStr))
+                }
+            }
+        }
+        
+        return (newCursor, elements)
     }
     
     private func _hget(_ key: String, field: String) async throws -> String? {
-        let client = try await getClient()
-        let val = try await client?.hget(ValkeyKey(key), field: field)
-        return val.map { String($0) }
+        let reply = try await execute(command: "HGET", args: [key, field])
+        return reply.stringValue
     }
 }

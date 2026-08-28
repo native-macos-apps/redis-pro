@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import Valkey
 
-// MARK: - list function
+// MARK: - List Operations
 extension RedisClient {
 
     func pageList(_ key: String, page: Page) async throws -> ([RedisListItemModel], Page) {
@@ -38,10 +37,8 @@ extension RedisClient {
     
     func _lrange(_ key: String, start: Int, stop: Int) async throws -> [String?] {
         logger.debug("redis list range, key: \(key)")
-        guard let client = try await getClient() else { return [] }
-        
-        let res = try await client.lrange(ValkeyKey(key), start: start, stop: stop)
-        return res.map { String(fromValkeyValue: $0) }
+        let reply = try await execute(command: "LRANGE", args: [key, String(start), String(stop)])
+        return reply.arrayValue?.map { $0.stringValue } ?? []
     }
     
     func ldel(_ key: String, index: Int, value: String) async throws -> Int {
@@ -64,8 +61,8 @@ extension RedisClient {
     }
     
     private func _lrem(_ key: String, value: String) async throws -> Int {
-        guard let client = try await getClient() else { return 0 }
-        return try await client.lrem(ValkeyKey(key), count: 0, element: value)
+        let reply = try await execute(command: "LREM", args: [key, "0", value])
+        return reply.intValue ?? 0
     }
     
     func lset(_ key: String, index: Int, value: String) async throws {
@@ -75,29 +72,27 @@ extension RedisClient {
     }
     
     private func _lset(_ key: String, index: Int, value: String) async throws {
-        guard let client = try await getClient() else { return }
-        _ = try await client.lset(ValkeyKey(key), index: index, element: value)
+        _ = try await execute(command: "LSET", args: [key, String(index), value])
     }
     
     func lpush(_ key: String, value: String) async throws -> Int {
-        guard let client = try await getClient() else { return 0 }
-        return try await client.lpush(ValkeyKey(key), elements: [value])
+        let reply = try await execute(command: "LPUSH", args: [key, value])
+        return reply.intValue ?? 0
     }
     
     func rpush(_ key: String, value: String) async throws -> Int {
-        guard let client = try await getClient() else { return 0 }
-        return try await client.rpush(ValkeyKey(key), elements: [value])
+        let reply = try await execute(command: "RPUSH", args: [key, value])
+        return reply.intValue ?? 0
     }
     
     private func _lindex(_ key: String, index: Int) async throws -> String? {
-        guard let client = try await getClient() else { return nil }
-        let val = try await client.lindex(ValkeyKey(key), index: index)
-        return val.map { String($0) }
+        let reply = try await execute(command: "LINDEX", args: [key, String(index)])
+        return reply.stringValue
     }
     
     private func llen(_ key: String) async throws -> Int {
         logger.debug("redis list length, key: \(key)")
-        guard let client = try await getClient() else { return 0 }
-        return try await client.llen(ValkeyKey(key))
+        let reply = try await execute(command: "LLEN", args: [key])
+        return reply.intValue ?? 0
     }
 }

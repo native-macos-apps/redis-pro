@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Valkey
 @preconcurrency import NIO
 @preconcurrency import NIOSSH
 import Logging
@@ -45,8 +44,19 @@ class SSHTunnel: @unchecked Sendable {
             
             let bootstrap = ClientBootstrap(group: self.group)
                 .channelInitializer { channel in
-                    return channel.pipeline.addHandlers([NIOSSHHandler(role: .client(.init(userAuthDelegate: UserPasswordDelegate(username: self.user, password: self.pass), serverAuthDelegate: AcceptAllHostKeysDelegate())), allocator: channel.allocator, inboundChildChannelInitializer: nil), ErrorHandler()])
-//                    return channel.pipeline.addBaseRedisHandlers()
+                    do {
+                        try channel.pipeline.syncOperations.addHandler(
+                            NIOSSHHandler(
+                                role: .client(.init(userAuthDelegate: UserPasswordDelegate(username: self.user, password: self.pass), serverAuthDelegate: AcceptAllHostKeysDelegate())),
+                                allocator: channel.allocator,
+                                inboundChildChannelInitializer: nil
+                            )
+                        )
+                        try channel.pipeline.syncOperations.addHandler(ErrorHandler())
+                        return channel.eventLoop.makeSucceededVoidFuture()
+                    } catch {
+                        return channel.eventLoop.makeFailedFuture(error)
+                    }
                 }
                 .channelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
                 .channelOption(ChannelOptions.socket(SocketOptionLevel(IPPROTO_TCP), TCP_NODELAY), value: 1)

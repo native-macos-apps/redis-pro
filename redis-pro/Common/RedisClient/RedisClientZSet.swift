@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import Valkey
 
-// MARK: - zset function
+// MARK: - Sorted Set Operations
 extension RedisClient {
     
     func pageZSet(_ key: String, page: Page) async throws -> ([RedisZSetItemModel], Page) {
@@ -97,16 +96,33 @@ extension RedisClient {
     
     func zscan(_ key: String, keywords: String?, cursor: Int, count: Int? = 1) async throws -> (cursor: Int, elements: [(String, Double)]) {
         logger.debug("redis zset scan, key: \(key) cursor: \(cursor), keywords: \(String(describing: keywords)), count:\(String(describing: count))")
-        let client = try await getClient()
-        
-        let res = try await client?.zscan(ValkeyKey(key), cursor: cursor, pattern: keywords, count: count)
-        
-        var elements: [(String, Double)] = []
-        if let members = try? res?.members.withScores() {
-            elements = members.map { (String($0.value), $0.score) }
+        var args = [key, String(cursor)]
+        if let match = keywords, !match.isEmpty {
+            args += ["MATCH", match]
+        }
+        if let count = count {
+            args += ["COUNT", String(count)]
         }
         
-        return (res?.cursor ?? 0, elements)
+        let reply = try await execute(command: "ZSCAN", args: args)
+        guard let arr = reply.arrayValue, arr.count >= 2 else {
+            return (0, [])
+        }
+        
+        let newCursor = arr[0].intValue ?? 0
+        var elements: [(String, Double)] = []
+        
+        if let items = arr[1].arrayValue {
+            var i = 0
+            while i + 1 < items.count {
+                if let val = items[i].stringValue, let score = items[i + 1].doubleValue {
+                    elements.append((val, score))
+                }
+                i += 2
+            }
+        }
+        
+        return (newCursor, elements)
     }
     
     func zupdate(_ key: String, from: String, to: String, score: Double) async throws -> Bool {
@@ -131,15 +147,13 @@ extension RedisClient {
     }
     
     private func _zadd(_ key: String, score: Double, ele: String) async throws -> Bool {
-        let client = try await getClient()
-        let res = try await client?.zadd(ValkeyKey(key), data: [ZADD<String>.Data(score: score, member: ele)])
-        // ZADD returns RESPToken? which can be Int or Null
-        return res != nil
+        let reply = try await execute(command: "ZADD", args: [key, String(score), ele])
+        return !reply.isError
     }
     
     private func _zcard(_ key: String) async throws -> Int {
-        let client = try await getClient()
-        return try await client?.zcard(ValkeyKey(key)) ?? 0
+        let reply = try await execute(command: "ZCARD", args: [key])
+        return reply.intValue ?? 0
     }
     
     func zrem(_ key: String, ele: String) async throws -> Int {
@@ -154,49 +168,27 @@ extension RedisClient {
     }
     
     private func _zrem(_ key: String, ele: String) async throws -> Int {
-        let client = try await getClient()
-        return try await client?.zrem(ValkeyKey(key), members: [ele]) ?? 0
+        let reply = try await execute(command: "ZREM", args: [key, ele])
+        return reply.intValue ?? 0
     }
     
     private func _zscore(_ key: String, ele: String) async throws -> Double? {
-        let client = try await getClient()
-        return try await client?.zscore(ValkeyKey(key), member: ele)
+        let reply = try await execute(command: "ZSCORE", args: [key, ele])
+        return reply.doubleValue
     }
     
     private func _zrange(_ key: String, page: Page) async throws -> [(String, String)] {
-        let client = try await getClient()
-        
-        // Use index-based range for pagination when match all
-        // Redis ZRANGE stop is inclusive, so we use end - 1
-        let res = try await client?.zrange(
-            ValkeyKey(key),
-            start: "\(page.start)",
-            stop: "\(page.end - 1)",
-            sortby: nil, // Default is by index
-            rev: false,
-            limit: nil,
-            withscores: true
-        )
-        
+        // ZRANGE key start stop WITHSCORES
+        let reply = try await execute(command: "ZRANGE", args: [key, "\(page.start)", "\(page.end - 1)", "WITHSCORES"])
         var result: [(String, String)] = []
-        if let tokens = res {
-            // Try to parse as nested arrays (paired result)
-            for token in tokens {
-                if case .array(let nested) = token.value {
-                    let nestedArr = Swift.Array(nested)
-                    if nestedArr.count >= 2 {
-                        result.append((String(fromValkeyValue: nestedArr[0]), String(fromValkeyValue: nestedArr[1])))
-                    }
+        
+        if let tokens = reply.arrayValue {
+            var i = 0
+            while i + 1 < tokens.count {
+                if let member = tokens[i].stringValue, let score = tokens[i + 1].stringValue {
+                    result.append((member, score))
                 }
-            }
-            
-            // If result is empty, fallback to flat array (RESP2 behavior)
-            if result.isEmpty {
-                let arr = Swift.Array(tokens)
-                var iterator = arr.makeIterator()
-                while let memberToken = iterator.next(), let scoreToken = iterator.next() {
-                    result.append((String(fromValkeyValue: memberToken), String(fromValkeyValue: scoreToken)))
-                }
+                i += 2
             }
         }
         return result
@@ -207,17 +199,10 @@ extension RedisClient {
         begin()
         defer { complete() }
         
-        let client = try await getClient()
-        // GEOPOS key member
-        let res: RESPToken? = try await client?.execute(AnyCommand(commandName: "GEOPOS", args: [ValkeyKey(key), member]))
-        
-        if let token = res, case .array(let array) = token.value {
-            let arr = Swift.Array(array)
-            if let first = arr.first, case .array(let pos) = first.value {
-                let posArr = Swift.Array(pos)
-                if posArr.count >= 2 {
-                    return [String(fromValkeyValue: posArr[0]), String(fromValkeyValue: posArr[1])]
-                }
+        let reply = try await execute(command: "GEOPOS", args: [key, member])
+        if let arr = reply.arrayValue, let first = arr.first?.arrayValue, first.count >= 2 {
+            if let lon = first[0].stringValue, let lat = first[1].stringValue {
+                return [lon, lat]
             }
         }
         return nil

@@ -8,7 +8,6 @@
 import Foundation
 import Observation
 import Logging
-import Valkey
 
 private let logger = Logger(label: "command-query-store")
 
@@ -63,14 +62,10 @@ final class CommandQueryViewModel {
                 let client = redisInstance.getClient()
                 
                 // execute using raw command
-                let responseToken: RESPToken? = try await client.send(parsed.command, args: parsed.args)
+                let responseReply = try await client.execute(command: parsed.command, args: parsed.args)
                 
-                if let responseToken = responseToken {
-                    let formatted = formatToken(responseToken)
-                    self.outputText += "\n> \(trimmed)\n\(formatted)\n"
-                } else {
-                    self.outputText += "\n> \(trimmed)\n(nil)\n"
-                }
+                let formatted = formatReply(responseReply)
+                self.outputText += "\n> \(trimmed)\n\(formatted)\n"
             } catch {
                 self.outputText += "\n> \(trimmed)\nError: \(error.localizedDescription)\n"
             }
@@ -82,46 +77,42 @@ final class CommandQueryViewModel {
         self.outputText = ""
     }
     
-    private func formatToken(_ token: RESPToken) -> String {
-        switch token.value {
-        case .simpleString(let buffer), .bulkString(let buffer):
-            return String(buffer: buffer)
-        case .number(let i):
-            return String(i)
+    private func formatReply(_ reply: RedisReply) -> String {
+        switch reply {
+        case .string(let s):
+            return s
+        case .status(let s):
+            return s
+        case .verbatim(let s):
+            return s
+        case .integer(let i):
+            return "(integer) \(i)"
         case .double(let d):
-            return String(d)
+            return "\(d)"
         case .boolean(let b):
             return b ? "true" : "false"
-        case .null:
+        case .nil:
             return "(nil)"
-        default:
-            // Check for array response
-            if let tokenArray = try? token.decode(as: RESPToken.Array.self) {
-                let arr = Array(tokenArray)
-                if arr.isEmpty {
-                    return "(empty array)"
-                }
-                return arr.enumerated().map { index, item in
-                    let formattedItem = formatToken(item)
-                    let indented = formattedItem.components(separatedBy: .newlines).map { "  " + $0 }.joined(separator: "\n")
-                    return "\(index + 1))\n\(indented)"
-                }.joined(separator: "\n")
+        case .error(let err):
+            return "(error) \(err)"
+        case .array(let arr), .set(let arr), .push(let arr):
+            if arr.isEmpty {
+                return "(empty array)"
             }
-            
-            // Check for map response
-            if let tokenMap = try? token.decode(as: RESPToken.Map.self) {
-                let entries = Array(tokenMap)
-                if entries.isEmpty {
-                    return "(empty map)"
-                }
-                return entries.map { entry in
-                    let keyStr = formatToken(entry.key)
-                    let valStr = formatToken(entry.value)
-                    return "\(keyStr) => \(valStr)"
-                }.joined(separator: "\n")
+            return arr.enumerated().map { index, item in
+                let formattedItem = formatReply(item)
+                let indented = formattedItem.components(separatedBy: .newlines).map { "  " + $0 }.joined(separator: "\n")
+                return "\(index + 1))\n\(indented)"
+            }.joined(separator: "\n")
+        case .map(let dict):
+            if dict.isEmpty {
+                return "(empty map)"
             }
-            
-            return "\(token)"
+            return dict.map { entry in
+                let keyStr = formatReply(entry.key)
+                let valStr = formatReply(entry.value)
+                return "\(keyStr) => \(valStr)"
+            }.joined(separator: "\n")
         }
     }
     
@@ -140,19 +131,9 @@ final class CommandQueryViewModel {
     
     private func collectTokens(from args: [CommandArgDoc], into result: inout [String]) {
         for arg in args {
-            // Collect keyword tokens for autocomplete.
-            // Rule: any arg that has a non-empty `token` field is a keyword the user types,
-            // EXCEPT `oneof` which is just a grouping container with no own keyword.
-            // This covers:
-            //   pure-token      → NX, XX, GET, WITHCOORD, KEEPTTL …
-            //   block + token   → FROMLONLAT, BYBOX, EX (as block), IFEQ …
-            //   integer + token → EX seconds, RANK n, COUNT n, MAXLEN n …
-            //   unix-time+token → EXAT, PXAT …
-            //   string + token  → IFEQ ifeq-value …
             if arg.type != "oneof", let tok = arg.token, !tok.isEmpty {
                 result.append(tok.uppercased())
             }
-            // Always recurse into children (oneof / block contain their own keyword args)
             if !arg.arguments.isEmpty {
                 collectTokens(from: arg.arguments, into: &result)
             }
@@ -166,10 +147,10 @@ final class CommandQueryViewModel {
         Task {
             do {
                 let client = redisInstance.getClient()
-                let response: RESPToken? = try await client.send("COMMAND", args: ["LIST"])
-                if let response, let arr = try? response.decode(as: RESPToken.Array.self) {
-                    let names = Array(arr)
-                        .map { respTokenToString($0) }
+                let response = try await client.execute(command: "COMMAND", args: ["LIST"])
+                if let arr = response.arrayValue {
+                    let names = arr
+                        .compactMap { $0.stringValue }
                         .filter { !$0.isEmpty }
                         .sorted()
                     self.commandNames = names
@@ -177,7 +158,6 @@ final class CommandQueryViewModel {
                 }
             } catch {
                 logger.warning("COMMAND LIST failed: \(error) — falling back to built-in list")
-                // commandNames stays empty; highlighter/autocomplete use static fallback
             }
         }
     }
@@ -207,8 +187,8 @@ final class CommandQueryViewModel {
         Task {
             do {
                 let client = redisInstance.getClient()
-                let response: RESPToken? = try await client.send("COMMAND", args: ["DOCS", cmd])
-                if let response, let doc = parseCommandDoc(cmd, from: response) {
+                let response = try await client.execute(command: "COMMAND", args: ["DOCS", cmd])
+                if let doc = parseCommandDoc(cmd, from: response) {
                     self.commandDocsCache[cmd] = doc   // cache for the session
                     self.commandDoc = doc
                 } else {
@@ -221,83 +201,72 @@ final class CommandQueryViewModel {
         }
     }
     
-    private func respTokenToString(_ token: RESPToken) -> String {
-        switch token.value {
-        case .simpleString(let buf), .bulkString(let buf): return String(buffer: buf)
-        case .number(let i):  return String(i)
-        case .double(let d):  return String(d)
-        case .boolean(let b): return b ? "true" : "false"
-        case .null:           return ""
-        default:              return ""
-        }
-    }
-    
-    private func respTokenToMap(_ token: RESPToken) -> [String: RESPToken] {
-        var result: [String: RESPToken] = [:]
-        if let map = try? token.decode(as: RESPToken.Map.self) {
-            for entry in map {
-                result[respTokenToString(entry.key)] = entry.value
+    private func replyToMap(_ reply: RedisReply) -> [String: RedisReply] {
+        var result: [String: RedisReply] = [:]
+        if let map = reply.mapValue {
+            for (k, v) in map {
+                if let keyStr = k.stringValue {
+                    result[keyStr] = v
+                }
             }
-        } else if let arr = try? token.decode(as: RESPToken.Array.self) {
-            var items = Array(arr)
-            while items.count >= 2 {
-                result[respTokenToString(items[0])] = items[1]
-                items.removeFirst(2)
+        } else if let arr = reply.arrayValue {
+            var i = 0
+            while i + 1 < arr.count {
+                if let keyStr = arr[i].stringValue {
+                    result[keyStr] = arr[i + 1]
+                }
+                i += 2
             }
         }
         return result
     }
     
-    private func parseCommandDoc(_ cmd: String, from token: RESPToken) -> CommandDoc? {
-        let outer = respTokenToMap(token)
-        guard let docToken = outer[cmd] else { return nil }
-        let docMap = respTokenToMap(docToken)
+    private func parseCommandDoc(_ cmd: String, from reply: RedisReply) -> CommandDoc? {
+        let outer = replyToMap(reply)
+        guard let docReply = outer[cmd] else { return nil }
+        let docMap = replyToMap(docReply)
         guard !docMap.isEmpty else { return nil }
         
-        let summary    = docMap["summary"].map    { respTokenToString($0) } ?? ""
-        let since      = docMap["since"].map      { respTokenToString($0) } ?? ""
-        let group      = docMap["group"].map      { respTokenToString($0) } ?? ""
-        let complexity = docMap["complexity"].map { respTokenToString($0) } ?? ""
+        let summary    = docMap["summary"]?.stringValue ?? ""
+        let since      = docMap["since"]?.stringValue ?? ""
+        let group      = docMap["group"]?.stringValue ?? ""
+        let complexity = docMap["complexity"]?.stringValue ?? ""
         
         var arguments: [CommandArgDoc] = []
-        if let argsToken = docMap["arguments"],
-           let argsArr = try? argsToken.decode(as: RESPToken.Array.self) {
-            arguments = Array(argsArr).compactMap { parseArgDoc($0) }
+        if let argsReply = docMap["arguments"], let argsArr = argsReply.arrayValue {
+            arguments = argsArr.compactMap { parseArgDoc($0) }
         }
         
         var docFlags: [String] = []
-        if let flagsToken = docMap["doc_flags"],
-           let flagsArr = try? flagsToken.decode(as: RESPToken.Array.self) {
-            docFlags = Array(flagsArr).map { respTokenToString($0) }
+        if let flagsReply = docMap["doc_flags"], let flagsArr = flagsReply.arrayValue {
+            docFlags = flagsArr.compactMap { $0.stringValue }
         }
         
         return CommandDoc(name: cmd, summary: summary, since: since,
-                         group: group, complexity: complexity,
-                         arguments: arguments, docFlags: docFlags)
+                          group: group, complexity: complexity,
+                          arguments: arguments, docFlags: docFlags)
     }
     
-    private func parseArgDoc(_ token: RESPToken) -> CommandArgDoc? {
-        let map = respTokenToMap(token)
-        let name        = map["name"].map        { respTokenToString($0) } ?? ""
+    private func parseArgDoc(_ reply: RedisReply) -> CommandArgDoc? {
+        let map = replyToMap(reply)
+        let name        = map["name"]?.stringValue ?? ""
         guard !name.isEmpty else { return nil }
-        let displayText = map["display_text"].map { respTokenToString($0) } ?? name
-        let type        = map["type"].map        { respTokenToString($0) } ?? ""
-        let argToken    = map["token"].map       { respTokenToString($0) }
+        let displayText = map["display_text"]?.stringValue ?? name
+        let type        = map["type"]?.stringValue ?? ""
+        let argToken    = map["token"]?.stringValue
         
         var flags: [String] = []
-        if let flagsToken = map["flags"],
-           let flagsArr = try? flagsToken.decode(as: RESPToken.Array.self) {
-            flags = Array(flagsArr).map { respTokenToString($0) }
+        if let flagsReply = map["flags"], let flagsArr = flagsReply.arrayValue {
+            flags = flagsArr.compactMap { $0.stringValue }
         }
         
         var nestedArgs: [CommandArgDoc] = []
-        if let nestedToken = map["arguments"],
-           let nestedArr = try? nestedToken.decode(as: RESPToken.Array.self) {
-            nestedArgs = Array(nestedArr).compactMap { parseArgDoc($0) }
+        if let nestedReply = map["arguments"], let nestedArr = nestedReply.arrayValue {
+            nestedArgs = nestedArr.compactMap { parseArgDoc($0) }
         }
         
         return CommandArgDoc(name: name, displayText: displayText, type: type,
-                            flags: flags, token: argToken, arguments: nestedArgs)
+                             flags: flags, token: argToken, arguments: nestedArgs)
     }
 }
 

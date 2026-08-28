@@ -25,7 +25,6 @@ final class RedisKeysViewModel {
     var hasMoreKeys: Bool = true
 
     let table: TableViewModel<RedisKeyModel>
-    let redisSystem: RedisSystemViewModel
     let value: ValueViewModel
     let database_: DatabaseViewModel
     let page: PageViewModel
@@ -54,7 +53,6 @@ final class RedisKeysViewModel {
             datasource: [],
             multiSelect: true
         )
-        self.redisSystem = RedisSystemViewModel(redisInstance: redisInstance)
         self.value = ValueViewModel(redisInstance: redisInstance)
         self.database_ = DatabaseViewModel(redisInstance: redisInstance)
         self.page = PageViewModel()
@@ -141,10 +139,6 @@ final class RedisKeysViewModel {
             }
         }
 
-        // System view callback
-        redisSystem.onSetSystemView = { [weak self] in
-            self?.mainViewType = .SYSTEM
-        }
     }
 
     // MARK: - Public API

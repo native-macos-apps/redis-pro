@@ -18,6 +18,9 @@ struct RedisValueView: View {
             Divider()
 
             RedisValueEditView(viewModel: viewModel)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            RedisValueFooterView(viewModel: viewModel)
         }
     }
 }

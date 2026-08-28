@@ -6,14 +6,13 @@
 //
 
 import Foundation
-import Valkey
 import NIO
 
-// MARK: - conn operator
+// MARK: - Connection Operations
 extension RedisClient {
     
     /*
-     * 初始化redis 连接
+     * Initialize redis connection
      */
     func initConnection() async throws -> Bool {
         begin()
@@ -24,7 +23,6 @@ extension RedisClient {
         do {
             let _ = try await getClient()
             return true
-            
         } catch {
             handleError(error)
         }
@@ -32,7 +30,7 @@ extension RedisClient {
         return false
     }
     
-    /// test redis connection
+    /// Test redis connection
     func testConn() async throws -> Bool {
         begin()
         defer {
@@ -42,9 +40,8 @@ extension RedisClient {
         do {
             let client = try await initClient()
             let pong = try await client.ping()
-            
-            // For testing, we close the client immediately
-            return String(fromValkeyValue: pong) == "PONG"
+            self.close()
+            return pong
         } catch {
             Task { @MainActor in Messages.show(error) }
             return false
@@ -56,8 +53,7 @@ extension RedisClient {
         let _ = try? await self.getClient()
     }
     
-    // Legacy support for getConn()
-    func getConn() async throws -> ValkeyClient? {
+    func getConn() async throws -> HiredisClientProtocol? {
         return try await getClient()
     }
 }

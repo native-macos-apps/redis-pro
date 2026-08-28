@@ -13,6 +13,11 @@ import Observation
 
 private let logger = Logger(label: "string-value-store")
 
+enum StringViewMode: String, CaseIterable {
+    case plain = "Plain Text"
+    case json = "JSON"
+}
+
 @MainActor
 @Observable
 final class StringValueViewModel {
@@ -20,6 +25,7 @@ final class StringValueViewModel {
     var isIntactString: Bool = true
     var length: Int = -1
     var text: String = ""
+    var viewMode: StringViewMode = .plain
 
     // Callback for submit success
     var onSubmitSuccess: ((Bool) -> Void)?

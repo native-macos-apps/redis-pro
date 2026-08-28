@@ -6,23 +6,20 @@
 //
 
 import Foundation
-import Valkey
 
-// MARK: - string operator
+// MARK: - String Operations
 extension RedisClient {
 
     /**
-     set value expire(seconds)
+     Set value expire (seconds)
      */
     func set(_ key: String, value: String, ex: Int = -1) async throws {
         logger.info("set value, key:\(key), value:\(value), ex:\(ex)")
         
-        let client = try await getClient()
-        
         if ex == -1 {
-            try await client?.set(ValkeyKey(key), value: value)
+            _ = try await execute(command: "SET", args: [key, value])
         } else {
-            try await client?.setex(ValkeyKey(key), seconds: ex, value: value)
+            _ = try await execute(command: "SETEX", args: [key, String(ex), value])
         }
     }
     
@@ -32,25 +29,20 @@ extension RedisClient {
     
     func get(_ key: String) async throws -> String {
         logger.info("get value, key:\(key)")
-        let client = try await getClient()
-        
-        let val = try await client?.get(ValkeyKey(key))
-        return val.map { String($0) } ?? Const.EMPTY_STRING
+        let reply = try await execute(command: "GET", args: [key])
+        return reply.stringValue ?? Const.EMPTY_STRING
     }
     
     func getRange(_ key: String, start: Int = 0, end: Int) async throws -> String {
         logger.info("get value range, key:\(key), start:\(start), end:\(end)")
-        let client = try await getClient()
-        
-        let val = try await client?.getrange(ValkeyKey(key), start: start, end: end)
-        return val.map { String($0) } ?? Const.EMPTY_STRING
+        let reply = try await execute(command: "GETRANGE", args: [key, String(start), String(end)])
+        return reply.stringValue ?? Const.EMPTY_STRING
     }
     
     func strLen(_ key: String) async throws -> Int {
         logger.info("get value length, key:\(key)")
-        let client = try await getClient()
-        
-        return try await client?.strlen(ValkeyKey(key)) ?? 0
+        let reply = try await execute(command: "STRLEN", args: [key])
+        return reply.intValue ?? 0
     }
     
     func del(_ key: String) async throws -> Int {
@@ -60,52 +52,46 @@ extension RedisClient {
     func del(_ keys: [String]) async throws -> Int {
         self.logger.info("delete keys \(keys)")
         guard !keys.isEmpty else { return 0 }
-        let client = try await getClient()
-        
-        return try await client?.del(keys: keys.map { ValkeyKey($0) }) ?? 0
+        let reply = try await execute(command: "DEL", args: keys)
+        return reply.intValue ?? 0
     }
     
     func expire(_ key: String, seconds: Int = -1) async throws -> Bool {
         logger.info("set key expire key:\(key), seconds:\(seconds)")
-        let client = try await getClient()
-        
         if seconds < 0 {
-            return try await client?.persist(ValkeyKey(key)) == 1
+            let reply = try await execute(command: "PERSIST", args: [key])
+            return reply.intValue == 1
         } else {
-            return try await client?.expire(ValkeyKey(key), seconds: seconds) == 1
+            let reply = try await execute(command: "EXPIRE", args: [key, String(seconds)])
+            return reply.intValue == 1
         }
     }
     
     func exist(_ key: String) async throws -> Bool {
         logger.info("get key exist: \(key)")
-        let client = try await getClient()
-        
-        return (try await client?.exists(keys: [ValkeyKey(key)]) ?? 0) > 0
+        let reply = try await execute(command: "EXISTS", args: [key])
+        return (reply.intValue ?? 0) > 0
     }
     
     func ttl(_ key: String) async throws -> Int {
         logger.info("get ttl key: \(key)")
-        let client = try await getClient()
-        
-        return try await client?.ttl(ValkeyKey(key)) ?? -2
+        let reply = try await execute(command: "TTL", args: [key])
+        return reply.intValue ?? -2
     }
     
     func objectEncoding(_ key: String) async throws -> String {
         logger.info("get object encoding, key: \(key)")
-        let res: String? = try await self.send("OBJECT", args: ["ENCODING", ValkeyKey(key)])
+        let res: String? = try await self.send("OBJECT", args: ["ENCODING", key])
         return res ?? ""
     }
     
     func getTypes(_ keys: [String]) async throws -> [String: String] {
-        // Capture self as @unchecked Sendable workaround for Swift 6
-        let client = try await getClient()
         return try await withThrowingTaskGroup(of: (String, String).self) { group in
             var typeDict = [String: String]()
 
             for key in keys {
-                group.addTask { [client] in
-                    let type = try await client?.type(ValkeyKey(key))
-                    let typeStr = type.map { String($0) } ?? RedisKeyTypeEnum.NONE.rawValue
+                group.addTask {
+                    let typeStr = try await self.type(key)
                     return (key, typeStr)
                 }
             }
@@ -119,16 +105,14 @@ extension RedisClient {
     }
     
     private func type(_ key: String) async throws -> String {
-        let client = try await getClient()
-        let type = try await client?.type(ValkeyKey(key))
-        return type.map { String($0) } ?? RedisKeyTypeEnum.NONE.rawValue
+        let reply = try await execute(command: "TYPE", args: [key])
+        return reply.stringValue ?? RedisKeyTypeEnum.NONE.rawValue
     }
     
     func rename(_ oldKey: String, newKey: String) async throws -> Bool {
         logger.info("rename key, old key:\(oldKey), new key: \(newKey)")
-        let client = try await getClient()
-        
-        let r = try await client?.renamenx(ValkeyKey(oldKey), newkey: ValkeyKey(newKey)) == 1
+        let reply = try await execute(command: "RENAMENX", args: [oldKey, newKey])
+        let r = reply.intValue == 1
         if !r {
             Task { @MainActor in Messages.show("rename key error, new key: \(newKey) already exists.") }
         }
