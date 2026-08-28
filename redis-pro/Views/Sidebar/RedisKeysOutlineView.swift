@@ -272,7 +272,7 @@ final class Coordinator: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegat
     }
 
     func outlineView(_ outlineView: NSOutlineView, shouldSelectItem item: Any) -> Bool {
-        guard let item = item as? OutlineItem else { return false }
+        guard item is OutlineItem else { return false }
         return true
     }
 

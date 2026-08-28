@@ -59,19 +59,6 @@ struct ZSetEditorView: View {
                 }
                 .keyboardShortcut("c")
             }
-
-            // footer
-            HStack(alignment: .center, spacing: 0) {
-                KeyObjectBar(viewModel: viewModel.keyObject)
-                Spacer()
-            }
-            .frame(height: 30)
-            .background(.thinMaterial)
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Color(NSColor.separatorColor))
-                    .frame(height: 0.5)
-            }
         }
         .sheet(isPresented: Binding(get: { vm.editModalVisible }, set: { vm.editModalVisible = $0 })) {
             ModalView("Edit zset element", action: { vm.submit() }) {

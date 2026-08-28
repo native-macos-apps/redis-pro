@@ -67,15 +67,6 @@ struct HashEditorView: View {
                 }
                 .keyboardShortcut("c")
             }
-
-            // footer
-            HStack(alignment: .center, spacing: 0) {
-                KeyObjectBar(viewModel: viewModel.keyObject)
-                Spacer()
-            }
-            .frame(height: 30)
-            .background(.ultraThinMaterial)
-            .padding(.horizontal, 16)
         }
         .onAppear {
             logger.info("redis hash editor view appear ...")
