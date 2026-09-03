@@ -30,6 +30,20 @@ struct RedisKeysListView: View {
             ToolbarItem(placement: .principal) {
                 connectionInfoBadge
             }
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    if viewModel.mainViewType == .ANALYSIS {
+                        viewModel.setMainViewType(.EDITOR)
+                    } else {
+                        viewModel.selectAnalysis()
+                    }
+                }) {
+                    Image(systemName: "chart.bar.xaxis")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(viewModel.mainViewType == .ANALYSIS ? Color.accentColor : Color.primary)
+                }
+                .help("Memory Analysis")
+            }
         }
         .sheet(isPresented: addKeySheetBinding) {
             AddKeySheet(viewModel: viewModel.addKey)
@@ -130,6 +144,8 @@ struct RedisKeysListView: View {
                 RedisValueView(viewModel: viewModel.value)
             case .QUERY:
                 CommandQueryView(viewModel: viewModel.commandQuery)
+            case .ANALYSIS:
+                RedisAnalysisView(viewModel: viewModel.analysis)
             case .NONE:
                 EmptyView()
             }

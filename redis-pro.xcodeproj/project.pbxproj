@@ -24,6 +24,9 @@
 		7C2000020000000000000008 /* dict.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000010000000000000008 /* dict.c */; };
 		5CA3EBAB0000000000000002 /* CommandQueryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAB0000000000000001 /* CommandQueryStore.swift */; };
 		5CA3EBAB0000000000000004 /* CommandQueryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAB0000000000000003 /* CommandQueryView.swift */; };
+		5CA3EBAD0000000000000002 /* RedisAnalysisModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAD0000000000000001 /* RedisAnalysisModel.swift */; };
+		5CA3EBAD0000000000000004 /* RedisAnalysisStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAD0000000000000003 /* RedisAnalysisStore.swift */; };
+		5CA3EBAD0000000000000007 /* RedisAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAD0000000000000006 /* RedisAnalysisView.swift */; };
 		4301C82F26B0EEB800C08E19 /* Stopwatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4301C82E26B0EEB800C08E19 /* Stopwatch.swift */; };
 		4301C84526BBE68400C08E19 /* SSHAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4301C84426BBE68400C08E19 /* SSHAuthentication.swift */; };
 		4301C86426BBF62600C08E19 /* SSHRedisClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4301C86326BBF62600C08E19 /* SSHRedisClient.swift */; };
@@ -193,6 +196,9 @@
 		7C3000010000000000000001 /* redis-pro-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "redis-pro-Bridging-Header.h"; sourceTree = "<group>"; };
 		5CA3EBAB0000000000000001 /* CommandQueryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandQueryStore.swift; sourceTree = "<group>"; };
 		5CA3EBAB0000000000000003 /* CommandQueryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandQueryView.swift; sourceTree = "<group>"; };
+		5CA3EBAD0000000000000001 /* RedisAnalysisModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisAnalysisModel.swift; sourceTree = "<group>"; };
+		5CA3EBAD0000000000000003 /* RedisAnalysisStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisAnalysisStore.swift; sourceTree = "<group>"; };
+		5CA3EBAD0000000000000006 /* RedisAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisAnalysisView.swift; sourceTree = "<group>"; };
 		4301C82E26B0EEB800C08E19 /* Stopwatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stopwatch.swift; sourceTree = "<group>"; };
 		4301C84426BBE68400C08E19 /* SSHAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHAuthentication.swift; sourceTree = "<group>"; };
 		4301C86326BBF62600C08E19 /* SSHRedisClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHRedisClient.swift; sourceTree = "<group>"; };
@@ -467,6 +473,7 @@
 		4320AB1625B67E2400A8E214 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				5CA3EBAD0000000000000005 /* Analysis */,
 				430A09E025C1557900B60DFC /* Components */,
 				62CB3D6F2619ADB60061E8C3 /* Login */,
 				4385D337261FF6E900BA8ED1 /* RedisEditorView */,
@@ -483,6 +490,7 @@
 		4320AB1725B67E2C00A8E214 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				5CA3EBAD0000000000000001 /* RedisAnalysisModel.swift */,
 				5CA3EB052F344FE00099AC5F /* RedisKeyNode.swift */,
 				430A09DB25BEAD2700B60DFC /* RedisInstanceModel.swift */,
 				4373C50825C3F218002B700E /* RedisModel.swift */,
@@ -584,6 +592,14 @@
 			path = System;
 			sourceTree = "<group>";
 		};
+		5CA3EBAD0000000000000005 /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				5CA3EBAD0000000000000006 /* RedisAnalysisView.swift */,
+			);
+			path = Analysis;
+			sourceTree = "<group>";
+		};
 		620AF6B427D485A1002D6895 /* RedisClient */ = {
 			isa = PBXGroup;
 			children = (
@@ -646,6 +662,7 @@
 		626C4C0E281D32E200B7A542 /* Store */ = {
 			isa = PBXGroup;
 			children = (
+				5CA3EBAD0000000000000003 /* RedisAnalysisStore.swift */,
 				5CA3EBAB0000000000000001 /* CommandQueryStore.swift */,
 				626C4C13281D485A00B7A542 /* AppStore.swift */,
 				626C4C0F281D331D00B7A542 /* FavoriteStore.swift */,
@@ -911,6 +928,9 @@
 				7C2000020000000000000008 /* dict.c in Sources */,
 				5CA3EBAB0000000000000002 /* CommandQueryStore.swift in Sources */,
 				5CA3EBAB0000000000000004 /* CommandQueryView.swift in Sources */,
+				5CA3EBAD0000000000000002 /* RedisAnalysisModel.swift in Sources */,
+				5CA3EBAD0000000000000004 /* RedisAnalysisStore.swift in Sources */,
+				5CA3EBAD0000000000000007 /* RedisAnalysisView.swift in Sources */,
 				43EADB052620043F003B8310 /* HashEditorView.swift in Sources */,
 				621EFD8C276CB7510079D1E3 /* NTable.swift in Sources */,
 				6240E0AB280303890005E793 /* RedisDefaults.swift in Sources */,

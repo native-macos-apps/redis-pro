@@ -31,6 +31,7 @@ final class RedisKeysViewModel {
     let rename: RenameViewModel
     let commandQuery: CommandQueryViewModel
     let addKey: AddKeyViewModel
+    let analysis: RedisAnalysisViewModel
 
     private let redisInstance: RedisInstanceModel
 
@@ -59,6 +60,7 @@ final class RedisKeysViewModel {
         self.rename = RenameViewModel(redisInstance: redisInstance)
         self.commandQuery = CommandQueryViewModel(redisInstance: redisInstance)
         self.addKey = AddKeyViewModel(redisInstance: redisInstance)
+        self.analysis = RedisAnalysisViewModel(redisInstance: redisInstance)
 
         setupCallbacks()
         logger.info("RedisKeysViewModel init ...")
@@ -96,6 +98,7 @@ final class RedisKeysViewModel {
             self.selectedKeyId = nil
             self.value.key.redisKeyModel = RedisKeyModel()
             self.mainViewType = .EDITOR
+            self.analysis.stop()
             self.page.total = 0
             self.page.current = 1
             self.scanCursor = 0
@@ -237,6 +240,11 @@ final class RedisKeysViewModel {
     func selectCommandQuery() {
         selectedKeyId = nil
         mainViewType = .QUERY
+    }
+
+    func selectAnalysis() {
+        selectedKeyId = nil
+        mainViewType = .ANALYSIS
     }
 
     func addNew() {
