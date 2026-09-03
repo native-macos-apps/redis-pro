@@ -18,7 +18,6 @@ struct RedisAnalysisView: View {
 
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 16) {
-                    fragmentationSection
                     ttlDistributionSection
                     prefixGroupsSection
                 }
@@ -104,21 +103,57 @@ struct RedisAnalysisView: View {
                 }
             }
 
+            Divider().frame(height: 14)
+
+            HStack(spacing: 4) {
+                Text("Sample:")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+
+                Picker("", selection: $viewModel.sampleSizeOption) {
+                    ForEach(SampleSizeOption.allCases) { opt in
+                        Text(opt.label).tag(opt)
+                    }
+                }
+                .pickerStyle(.menu)
+                .controlSize(.mini)
+                .frame(width: 105)
+                .disabled(viewModel.isAnalyzing)
+            }
+
             Spacer()
 
-            Button(action: {
-                viewModel.refresh()
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 10, weight: .medium))
-                    Text("Refresh")
-                        .font(.system(size: 11))
+            if viewModel.isAnalyzing {
+                Button(action: {
+                    viewModel.cancelAnalysis()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "stop.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.red)
+                        Text("Stop")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.red)
+                    }
                 }
+                .buttonStyle(.plain)
+                .help("Stop scanning keys")
+            } else {
+                Button(action: {
+                    viewModel.analyze()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(Color.accentColor)
+                        Text("Analyze")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color.accentColor)
+                    }
+                }
+                .buttonStyle(.plain)
+                .help("Analyze Memory & Key TTL Distribution")
             }
-            .buttonStyle(.plain)
-            .disabled(viewModel.isAnalyzing)
-            .help("Refresh Realtime Analysis")
         }
         .padding(.horizontal, 12)
         .frame(height: 32)
@@ -130,31 +165,7 @@ struct RedisAnalysisView: View {
         }
     }
 
-    // MARK: - Section 1: Fragmentation Ratio
-
-    private var fragmentationSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            let ratioStr = String(format: "%.2f", viewModel.latestFragmentationRatio)
-            let wasteStr = formatWasteBytes(viewModel.latestWasteBytes)
-
-            Text("Fragmentation ratio · latest: \(ratioStr)x (\(wasteStr) waste)")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.primary)
-
-            FragmentationLineChart(history: viewModel.fragmentationHistory, latestRatio: viewModel.latestFragmentationRatio)
-                .frame(height: 140)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
-                )
-        }
-    }
-
-    // MARK: - Section 2: Key TTL Distribution
+    // MARK: - Section 1: Key TTL Distribution
 
     private var ttlDistributionSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -306,130 +317,6 @@ struct RedisAnalysisView: View {
         }
     }
 
-    // MARK: - Helpers
-
-    private func formatWasteBytes(_ bytes: Int) -> String {
-        let b = Double(bytes)
-        if b <= 0 {
-            return "0B"
-        } else if b < 1024 * 1024 {
-            return String(format: "%.0fkB", b / 1024)
-        } else if b < 1024 * 1024 * 1024 {
-            return String(format: "%.0fMB", b / (1024 * 1024))
-        } else {
-            return String(format: "%.2fGB", b / (1024 * 1024 * 1024))
-        }
-    }
-}
-
-// MARK: - Custom Fragmentation Line Chart
-
-private struct FragmentationLineChart: View {
-    let history: [FragmentationPoint]
-    let latestRatio: Double
-
-    private static let timeFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm:ss"
-        return f
-    }()
-
-    var body: some View {
-        GeometryReader { geo in
-            let labelWidth: CGFloat = 36
-            let bottomLabelHeight: CGFloat = 20
-            let plotWidth = max(10, geo.size.width - labelWidth - 10)
-            let plotHeight = max(10, geo.size.height - bottomLabelHeight - 10)
-
-            let effectivePoints: [FragmentationPoint] = {
-                if history.count >= 2 {
-                    return history
-                } else if let single = history.first {
-                    let now = Date()
-                    return [
-                        FragmentationPoint(timestamp: now.addingTimeInterval(-60), ratio: single.ratio, wasteBytes: single.wasteBytes),
-                        single
-                    ]
-                } else {
-                    let now = Date()
-                    return [
-                        FragmentationPoint(timestamp: now.addingTimeInterval(-60), ratio: latestRatio, wasteBytes: 0),
-                        FragmentationPoint(timestamp: now, ratio: latestRatio, wasteBytes: 0)
-                    ]
-                }
-            }()
-
-            let rawMaxRatio = effectivePoints.map(\.ratio).max() ?? latestRatio
-            let maxY = max(2.0, ceil(rawMaxRatio * 2.0) / 2.0)
-            let yTicks: [Double] = [maxY, maxY * 0.75, maxY * 0.50, maxY * 0.25, 0.0]
-
-            ZStack(alignment: .topLeading) {
-                // Y-Axis Labels and Grid Lines
-                ForEach(yTicks, id: \.self) { val in
-                    let yPos = plotHeight * CGFloat(1.0 - (val / maxY))
-
-                    Text(String(format: "%.2f", val))
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                        .frame(width: labelWidth, alignment: .trailing)
-                        .position(x: labelWidth / 2, y: yPos)
-
-                    Path { path in
-                        path.move(to: CGPoint(x: labelWidth + 5, y: yPos))
-                        path.addLine(to: CGPoint(x: labelWidth + 5 + plotWidth, y: yPos))
-                    }
-                    .stroke(Color.secondary.opacity(0.15), style: StrokeStyle(lineWidth: 0.5, dash: [4, 4]))
-                }
-
-                // Green Line Path
-                Path { path in
-                    for (index, pt) in effectivePoints.enumerated() {
-                        let xFactor = CGFloat(index) / CGFloat(max(1, effectivePoints.count - 1))
-                        let x = labelWidth + 5 + xFactor * plotWidth
-                        let ratioClamped = min(maxY, max(0.0, pt.ratio))
-                        let y = plotHeight * CGFloat(1.0 - (ratioClamped / maxY))
-
-                        if index == 0 {
-                            path.move(to: CGPoint(x: x, y: y))
-                        } else {
-                            path.addLine(to: CGPoint(x: x, y: y))
-                        }
-                    }
-                }
-                .stroke(Color(red: 0.35, green: 0.85, blue: 0.45), style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-
-                // X-Axis Time Labels
-                let sampleIndices = calculateSampleIndices(count: effectivePoints.count)
-                ForEach(sampleIndices, id: \.self) { idx in
-                    let pt = effectivePoints[idx]
-                    let xFactor = CGFloat(idx) / CGFloat(max(1, effectivePoints.count - 1))
-                    let x = labelWidth + 5 + xFactor * plotWidth
-                    let timeStr = Self.timeFormatter.string(from: pt.timestamp)
-
-                    Text(timeStr)
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                        .position(x: x, y: plotHeight + 10)
-                }
-            }
-        }
-    }
-
-    private func calculateSampleIndices(count: Int) -> [Int] {
-        guard count > 0 else { return [] }
-        if count <= 4 {
-            return Array(0..<count)
-        }
-        let step = max(1, (count - 1) / 4)
-        var indices = [0]
-        var curr = step
-        while curr < count - 1 {
-            indices.append(curr)
-            curr += step
-        }
-        indices.append(count - 1)
-        return indices
-    }
 }
 
 // MARK: - Custom TTL Bar Chart

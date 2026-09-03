@@ -197,8 +197,45 @@ public actor HiredisConnection {
         return reply
     }
 
+    /// Runs Redis MONITOR command and streams raw reply strings until cancelled or closed.
+    public func runMonitor(onLine: @Sendable @escaping (String) -> Void) async throws {
+        if box.rawContext == nil || !isConnected {
+            try connect()
+        }
+
+        // Send initial MONITOR command
+        let initReply = try execute(command: "MONITOR", args: [])
+        guard initReply.isOK else {
+            throw BizError("Failed to start MONITOR: \(initReply)")
+        }
+
+        // Loop reading streaming replies
+        while !Task.isCancelled {
+            guard let activeCtx = box.rawContext else { break }
+            var replyPtr: UnsafeMutableRawPointer? = nil
+            let res = redisGetReply(activeCtx, &replyPtr)
+            if res != REDIS_OK {
+                if Task.isCancelled { break }
+                // If socket timed out waiting for activity (EAGAIN/EWOULDBLOCK), clear err and continue
+                if activeCtx.pointee.err == REDIS_ERR_IO && (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    activeCtx.pointee.err = 0
+                    continue
+                }
+                break
+            }
+            guard let validPtr = replyPtr else { continue }
+            let cReply = validPtr.bindMemory(to: redisReply.self, capacity: 1)
+            let reply = RedisReply.from(cReply: cReply)
+            freeReplyObject(validPtr)
+
+            if let line = reply.stringValue {
+                onLine(line)
+            }
+        }
+    }
+
     /// Explicitly close connection.
-    public func close() {
+    public nonisolated func close() {
         box.free()
     }
 }

@@ -31,18 +31,33 @@ struct RedisKeysListView: View {
                 connectionInfoBadge
             }
             ToolbarItem(placement: .primaryAction) {
-                Button(action: {
-                    if viewModel.mainViewType == .ANALYSIS {
-                        viewModel.setMainViewType(.EDITOR)
-                    } else {
-                        viewModel.selectAnalysis()
+                HStack(spacing: 8) {
+                    Button(action: {
+                        if viewModel.mainViewType == .MONITOR {
+                            viewModel.setMainViewType(.EDITOR)
+                        } else {
+                            viewModel.selectMonitor()
+                        }
+                    }) {
+                        Image(systemName: "waveform.path.ecg")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(viewModel.mainViewType == .MONITOR ? Color.accentColor : Color.primary)
                     }
-                }) {
-                    Image(systemName: "chart.bar.xaxis")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(viewModel.mainViewType == .ANALYSIS ? Color.accentColor : Color.primary)
+                    .help("Live Monitor")
+
+                    Button(action: {
+                        if viewModel.mainViewType == .ANALYSIS {
+                            viewModel.setMainViewType(.EDITOR)
+                        } else {
+                            viewModel.selectAnalysis()
+                        }
+                    }) {
+                        Image(systemName: "chart.bar.xaxis")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(viewModel.mainViewType == .ANALYSIS ? Color.accentColor : Color.primary)
+                    }
+                    .help("Memory Analyzer")
                 }
-                .help("Memory Analysis")
             }
         }
         .sheet(isPresented: addKeySheetBinding) {
@@ -146,6 +161,8 @@ struct RedisKeysListView: View {
                 CommandQueryView(viewModel: viewModel.commandQuery)
             case .ANALYSIS:
                 RedisAnalysisView(viewModel: viewModel.analysis)
+            case .MONITOR:
+                RedisMonitorView(viewModel: viewModel.monitor)
             case .NONE:
                 EmptyView()
             }

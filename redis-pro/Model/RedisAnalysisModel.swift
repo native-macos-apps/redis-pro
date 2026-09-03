@@ -15,6 +15,24 @@ public enum RankByOption: String, CaseIterable, Identifiable, Sendable {
     public var id: String { rawValue }
 }
 
+public enum SampleSizeOption: Int, CaseIterable, Identifiable, Sendable {
+    case fast = 500
+    case safe = 1000
+    case standard = 3000
+    case deep = 5000
+
+    public var id: Int { rawValue }
+
+    public var label: String {
+        switch self {
+        case .fast: return "500 (Fast)"
+        case .safe: return "1k (Safe)"
+        case .standard: return "3k"
+        case .deep: return "5k"
+        }
+    }
+}
+
 public struct FragmentationPoint: Identifiable, Sendable {
     public let id: UUID
     public let timestamp: Date
