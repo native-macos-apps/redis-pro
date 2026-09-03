@@ -231,7 +231,6 @@
 		4397288B2643E43800803BE9 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		43BB012226390BC20039565E /* ModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModalView.swift; sourceTree = "<group>"; };
 		43BCCD3626A91E85000BE45F /* FormItemPassword.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormItemPassword.swift; sourceTree = "<group>"; };
-		43CD2868267091B600E11876 /* .version */ = {isa = PBXFileReference; lastKnownFileType = text; path = .version; sourceTree = "<group>"; };
 		43CD286D2670A03800E11876 /* VersionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionManager.swift; sourceTree = "<group>"; };
 		43CD28702670C3DD00E11876 /* ColorSchemeEnum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeEnum.swift; sourceTree = "<group>"; };
 		43CD28732670E8BE00E11876 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -405,7 +404,6 @@
 				438BBEA82654DD3200B458BF /* Frameworks */,
 				4370534B2626E65D00D8F1B7 /* README.md */,
 				621531FF27775260009F0F41 /* .gitignore */,
-				43CD2868267091B600E11876 /* .version */,
 			);
 			sourceTree = "<group>";
 		};
