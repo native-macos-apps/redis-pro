@@ -77,7 +77,7 @@ public actor HiredisSentinelClient: HiredisClientProtocol {
                     command: "SENTINEL",
                     args: ["get-master-addr-by-name", masterName]
                 )
-                await sentinelConn.close()
+                sentinelConn.close()
 
                 if let arr = reply.arrayValue, arr.count >= 2,
                    let mHost = arr[0].stringValue,
@@ -154,7 +154,7 @@ public actor HiredisSentinelClient: HiredisClientProtocol {
         let conn = masterConnection
         masterConnection = nil
         if let conn = conn {
-            await conn.close()
+            conn.close()
         }
     }
 }
