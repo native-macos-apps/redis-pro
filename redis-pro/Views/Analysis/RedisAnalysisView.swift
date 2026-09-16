@@ -47,6 +47,52 @@ struct RedisAnalysisView: View {
                 .font(.system(size: 13, weight: .bold))
 
             Spacer()
+
+            if viewModel.isAnalyzing {
+                Button(action: {
+                    viewModel.cancelAnalysis()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "stop.circle.fill")
+                            .font(.system(size: 10, weight: .medium))
+                        Text("Stop")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .foregroundStyle(Color.red)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color(NSColor.controlBackgroundColor))
+                    .cornerRadius(5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+                    )
+                }
+                .buttonStyle(.plain)
+                .help("Stop scanning keys")
+            } else {
+                Button(action: {
+                    viewModel.analyze()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 10, weight: .medium))
+                        Text("Analyze")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .foregroundStyle(Color.accentColor)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color(NSColor.controlBackgroundColor))
+                    .cornerRadius(5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+                    )
+                }
+                .buttonStyle(.plain)
+                .help("Analyze Memory & Key TTL Distribution")
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
@@ -122,38 +168,6 @@ struct RedisAnalysisView: View {
             }
 
             Spacer()
-
-            if viewModel.isAnalyzing {
-                Button(action: {
-                    viewModel.cancelAnalysis()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "stop.circle.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.red)
-                        Text("Stop")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.red)
-                    }
-                }
-                .buttonStyle(.plain)
-                .help("Stop scanning keys")
-            } else {
-                Button(action: {
-                    viewModel.analyze()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(Color.accentColor)
-                        Text("Analyze")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
-                    }
-                }
-                .buttonStyle(.plain)
-                .help("Analyze Memory & Key TTL Distribution")
-            }
         }
         .padding(.horizontal, 12)
         .frame(height: 32)
