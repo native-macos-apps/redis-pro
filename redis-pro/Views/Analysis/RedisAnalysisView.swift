@@ -48,6 +48,22 @@ struct RedisAnalysisView: View {
 
             Spacer()
 
+            HStack(spacing: 4) {
+                Text("Sample:")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+
+                Picker("", selection: $viewModel.sampleSizeOption) {
+                    ForEach(SampleSizeOption.allCases) { opt in
+                        Text(opt.label).tag(opt)
+                    }
+                }
+                .pickerStyle(.menu)
+                .controlSize(.small)
+                .frame(width: 105)
+                .disabled(viewModel.isAnalyzing)
+            }
+
             if viewModel.isAnalyzing {
                 Button(action: {
                     viewModel.cancelAnalysis()
@@ -147,24 +163,6 @@ struct RedisAnalysisView: View {
                     ProgressView()
                         .controlSize(.mini)
                 }
-            }
-
-            Divider().frame(height: 14)
-
-            HStack(spacing: 4) {
-                Text("Sample:")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-
-                Picker("", selection: $viewModel.sampleSizeOption) {
-                    ForEach(SampleSizeOption.allCases) { opt in
-                        Text(opt.label).tag(opt)
-                    }
-                }
-                .pickerStyle(.menu)
-                .controlSize(.mini)
-                .frame(width: 105)
-                .disabled(viewModel.isAnalyzing)
             }
 
             Spacer()
