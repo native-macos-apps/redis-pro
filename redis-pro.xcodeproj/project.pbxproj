@@ -76,6 +76,8 @@
 		5CA3EBAD0000000000000012 /* RedisMonitorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAD0000000000000011 /* RedisMonitorModel.swift */; };
 		5CA3EBAD0000000000000014 /* RedisMonitorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAD0000000000000013 /* RedisMonitorStore.swift */; };
 		5CA3EBAD0000000000000017 /* RedisMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAD0000000000000016 /* RedisMonitorView.swift */; };
+		5CA3EBAD0000000000000032 /* RedisMetricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAD0000000000000031 /* RedisMetricsStore.swift */; };
+		5CA3EBAD0000000000000034 /* RedisMetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3EBAD0000000000000033 /* RedisMetricsView.swift */; };
 		620AF6B627D485EB002D6895 /* RedisClientKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 620AF6B527D485EB002D6895 /* RedisClientKeys.swift */; };
 		620AF6B827D486F5002D6895 /* RedisClientScan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 620AF6B727D486F5002D6895 /* RedisClientScan.swift */; };
 		620AF6BA27D48848002D6895 /* RedisClientHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 620AF6B927D48848002D6895 /* RedisClientHash.swift */; };
@@ -255,6 +257,8 @@
 		5CA3EBAD0000000000000011 /* RedisMonitorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisMonitorModel.swift; sourceTree = "<group>"; };
 		5CA3EBAD0000000000000013 /* RedisMonitorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisMonitorStore.swift; sourceTree = "<group>"; };
 		5CA3EBAD0000000000000016 /* RedisMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisMonitorView.swift; sourceTree = "<group>"; };
+		5CA3EBAD0000000000000031 /* RedisMetricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisMetricsStore.swift; sourceTree = "<group>"; };
+		5CA3EBAD0000000000000033 /* RedisMetricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisMetricsView.swift; sourceTree = "<group>"; };
 		620AF6B527D485EB002D6895 /* RedisClientKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisClientKeys.swift; sourceTree = "<group>"; };
 		620AF6B727D486F5002D6895 /* RedisClientScan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisClientScan.swift; sourceTree = "<group>"; };
 		620AF6B927D48848002D6895 /* RedisClientHash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedisClientHash.swift; sourceTree = "<group>"; };
@@ -580,6 +584,7 @@
 			isa = PBXGroup;
 			children = (
 				5CA3EBAD0000000000000016 /* RedisMonitorView.swift */,
+				5CA3EBAD0000000000000033 /* RedisMetricsView.swift */,
 			);
 			path = Monitor;
 			sourceTree = "<group>";
@@ -648,6 +653,7 @@
 			children = (
 				5CA3EBAD0000000000000003 /* RedisAnalysisStore.swift */,
 				5CA3EBAD0000000000000013 /* RedisMonitorStore.swift */,
+				5CA3EBAD0000000000000031 /* RedisMetricsStore.swift */,
 				5CA3EBAB0000000000000001 /* CommandQueryStore.swift */,
 				626C4C13281D485A00B7A542 /* AppStore.swift */,
 				626C4C0F281D331D00B7A542 /* FavoriteStore.swift */,
@@ -947,6 +953,8 @@
 				5CA3EBAD0000000000000012 /* RedisMonitorModel.swift in Sources */,
 				5CA3EBAD0000000000000014 /* RedisMonitorStore.swift in Sources */,
 				5CA3EBAD0000000000000017 /* RedisMonitorView.swift in Sources */,
+				5CA3EBAD0000000000000032 /* RedisMetricsStore.swift in Sources */,
+				5CA3EBAD0000000000000034 /* RedisMetricsView.swift in Sources */,
 				43EADB052620043F003B8310 /* HashEditorView.swift in Sources */,
 				621EFD8C276CB7510079D1E3 /* NTable.swift in Sources */,
 				6240E0AB280303890005E793 /* RedisDefaults.swift in Sources */,

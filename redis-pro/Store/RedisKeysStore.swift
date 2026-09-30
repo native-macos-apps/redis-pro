@@ -32,6 +32,7 @@ final class RedisKeysViewModel {
     let commandQuery: CommandQueryViewModel
     let addKey: AddKeyViewModel
     let analysis: RedisAnalysisViewModel
+    let metrics: RedisMetricsViewModel
     let monitor: RedisMonitorViewModel
 
     private let redisInstance: RedisInstanceModel
@@ -62,6 +63,7 @@ final class RedisKeysViewModel {
         self.commandQuery = CommandQueryViewModel(redisInstance: redisInstance)
         self.addKey = AddKeyViewModel(redisInstance: redisInstance)
         self.analysis = RedisAnalysisViewModel(redisInstance: redisInstance)
+        self.metrics = RedisMetricsViewModel(redisInstance: redisInstance)
         self.monitor = RedisMonitorViewModel(redisInstance: redisInstance)
 
         setupCallbacks()
@@ -248,6 +250,11 @@ final class RedisKeysViewModel {
     func selectAnalysis() {
         selectedKeyId = nil
         mainViewType = .ANALYSIS
+    }
+
+    func selectMetrics() {
+        selectedKeyId = nil
+        mainViewType = .METRICS
     }
 
     func selectMonitor() {
