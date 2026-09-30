@@ -33,6 +33,19 @@ struct RedisKeysListView: View {
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
                     Button(action: {
+                        if viewModel.mainViewType == .METRICS {
+                            viewModel.setMainViewType(.EDITOR)
+                        } else {
+                            viewModel.selectMetrics()
+                        }
+                    }) {
+                        Image(systemName: "gauge.with.dots.needle.bottom.50percent")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(viewModel.mainViewType == .METRICS ? Color.accentColor : Color.primary)
+                    }
+                    .help("Server Metrics")
+
+                    Button(action: {
                         if viewModel.mainViewType == .MONITOR {
                             viewModel.setMainViewType(.EDITOR)
                         } else {
@@ -43,7 +56,7 @@ struct RedisKeysListView: View {
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(viewModel.mainViewType == .MONITOR ? Color.accentColor : Color.primary)
                     }
-                    .help("Live Monitor")
+                    .help("Monitor")
 
                     Button(action: {
                         if viewModel.mainViewType == .ANALYSIS {
@@ -161,6 +174,8 @@ struct RedisKeysListView: View {
                 CommandQueryView(viewModel: viewModel.commandQuery)
             case .ANALYSIS:
                 RedisAnalysisView(viewModel: viewModel.analysis)
+            case .METRICS:
+                RedisMetricsView(viewModel: viewModel.metrics)
             case .MONITOR:
                 RedisMonitorView(viewModel: viewModel.monitor)
             case .NONE:

@@ -347,7 +347,7 @@ public actor HiredisClusterClient: HiredisClientProtocol {
         masterNodes.removeAll()
 
         for conn in conns {
-            await conn.close()
+            conn.close()
         }
     }
 }

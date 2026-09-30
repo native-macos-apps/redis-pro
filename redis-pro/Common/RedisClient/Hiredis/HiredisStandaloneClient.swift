@@ -64,6 +64,6 @@ public actor HiredisStandaloneClient: HiredisClientProtocol {
     }
 
     public func close() async {
-        await connection.close()
+        connection.close()
     }
 }

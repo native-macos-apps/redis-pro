@@ -2,7 +2,7 @@
 //  RedisMonitorView.swift
 //  redis-pro
 //
-//  Created for Real-time Live Monitor and Server Metrics.
+//  Created for Real-time Command Log Stream and Multi-condition Filtering.
 //
 
 import SwiftUI
@@ -15,11 +15,14 @@ struct RedisMonitorView: View {
         VStack(spacing: 0) {
             topBar
             Divider()
-            metricsHeader
-            Divider()
-            commandChartSection
+            filterBar
             Divider()
             liveCommandTable
+
+            if let selected = viewModel.selectedEntry {
+                Divider()
+                detailInspector(selected)
+            }
         }
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
@@ -34,52 +37,65 @@ struct RedisMonitorView: View {
 
     private var topBar: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: "waveform.path.ecg")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Color.accentColor)
 
-                Text("Live Monitor")
+                Text("Monitor")
                     .font(.system(size: 13, weight: .bold))
+
+                // Streaming status indicator
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(viewModel.isMonitoring ? Color.green : Color.red)
+                        .frame(width: 7, height: 7)
+                    Text(viewModel.isMonitoring ? "Streaming" : "Stopped")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color(NSColor.controlBackgroundColor))
+                .clipShape(Capsule())
+
+                // Entry count
+                Text("\(viewModel.entries.count) logs")
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            // Filter by keyword
-            HStack(spacing: 6) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-
-                TextField("Filter by keyword", text: $viewModel.filterKeyword)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 11))
-                    .frame(width: 140)
-
-                if !viewModel.filterKeyword.isEmpty {
-                    Button(action: { viewModel.filterKeyword = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
+            // Auto-scroll toggle
+            Button(action: {
+                viewModel.isAutoScrollEnabled.toggle()
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: viewModel.isAutoScrollEnabled ? "arrow.down.to.line.compact" : "pause.circle")
+                        .font(.system(size: 10, weight: .medium))
+                    Text("Auto-scroll")
+                        .font(.system(size: 11, weight: .medium))
                 }
+                .foregroundStyle(viewModel.isAutoScrollEnabled ? Color.accentColor : Color.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(5)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(viewModel.isAutoScrollEnabled ? Color.accentColor.opacity(0.4) : Color(NSColor.separatorColor), lineWidth: 0.5)
+                )
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(6)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
-            )
+            .buttonStyle(.plain)
+            .help("Keep latest logs in view")
 
             // Stop / Resume Button
             Button(action: {
                 viewModel.toggleMonitoring()
             }) {
                 HStack(spacing: 4) {
-                    Image(systemName: viewModel.isMonitoring ? "xmark" : "play.fill")
+                    Image(systemName: viewModel.isMonitoring ? "stop.fill" : "play.fill")
                         .font(.system(size: 10, weight: .medium))
                     Text(viewModel.isMonitoring ? "Stop" : "Resume")
                         .font(.system(size: 11, weight: .medium))
@@ -116,108 +132,160 @@ struct RedisMonitorView: View {
                 )
             }
             .buttonStyle(.plain)
-            .help("Clear Monitor Logs")
+            .help("Clear all captured logs")
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
         .background(.ultraThinMaterial)
     }
 
-    // MARK: - Metrics Header Bar
+    // MARK: - Multi-Condition Filter Bar
 
-    private var metricsHeader: some View {
-        HStack(spacing: 16) {
-            // Memory Card
-            HStack(spacing: 8) {
-                Image(systemName: "memorychip")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.accentColor)
+    private var filterBar: some View {
+        HStack(spacing: 8) {
+            // DB Filter: 0 to 15 and All (no prefix)
+            HStack(spacing: 4) {
+                Text("DB:")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Memory (Used / RSS)")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
-                    Text("\(viewModel.latestMetrics.usedMemoryHuman) / \(viewModel.latestMetrics.usedMemoryRssHuman)")
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                Picker("", selection: $viewModel.filterDb) {
+                    ForEach(viewModel.availableDbs, id: \.self) { db in
+                        Text(db).tag(db)
+                    }
                 }
-            }
-            .help("Used Memory: \(viewModel.latestMetrics.usedMemoryHuman)\nPhysical RSS: \(viewModel.latestMetrics.usedMemoryRssHuman)")
-
-            Divider().frame(height: 22)
-
-            // Commands Card
-            HStack(spacing: 8) {
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.yellow)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Commands")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
-                    Text("\(viewModel.latestMetrics.instantOpsPerSec.formatted()) ops/s")
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                }
+                .pickerStyle(.menu)
+                .frame(width: 65)
             }
 
-            Divider().frame(height: 22)
+            Divider().frame(height: 18)
 
-            // Hit Ratio Card
-            HStack(spacing: 8) {
-                Image(systemName: "target")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.teal)
+            // Command (CMD) Input Filter
+            HStack(spacing: 5) {
+                Text("CMD:")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Hit Ratio")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
-                    Text(String(format: "%.1f%%", viewModel.latestMetrics.hitRatio))
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                TextField("e.g. GET", text: $viewModel.filterCommand)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 11, design: .monospaced))
+                    .frame(width: 80)
+
+                if !viewModel.filterCommand.isEmpty {
+                    Button(action: { viewModel.filterCommand = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .help("Cache Hit Ratio: \(viewModel.latestMetrics.hits.formatted()) hits / \(viewModel.latestMetrics.misses.formatted()) misses")
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3.5)
+            .background(Color(NSColor.controlBackgroundColor))
+            .cornerRadius(5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+            )
 
-            Divider().frame(height: 22)
+            Divider().frame(height: 18)
 
-            // Clients Card
-            HStack(spacing: 8) {
-                Image(systemName: "person.2.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.indigo)
+            // Client Filter
+            HStack(spacing: 5) {
+                Text("Client:")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Clients (Conn / Block)")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
-                    Text("\(viewModel.latestMetrics.connectedClients) / \(viewModel.latestMetrics.blockedClients)")
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                TextField("IP / port", text: $viewModel.filterClient)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 11, design: .monospaced))
+                    .frame(width: 90)
+
+                if !viewModel.filterClient.isEmpty {
+                    Button(action: { viewModel.filterClient = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3.5)
+            .background(Color(NSColor.controlBackgroundColor))
+            .cornerRadius(5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+            )
 
-            Divider().frame(height: 22)
+            Divider().frame(height: 18)
 
-            // Evicted Keys Card
-            HStack(spacing: 8) {
-                Image(systemName: "trash")
-                    .font(.system(size: 12))
-                    .foregroundStyle(viewModel.latestMetrics.evictedKeys > 0 ? Color.red : Color.secondary)
+            // Keyword / Arguments Filter
+            HStack(spacing: 5) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Evicted Keys")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
-                    Text("\(viewModel.latestMetrics.evictedKeys.formatted())")
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(viewModel.latestMetrics.evictedKeys > 0 ? Color.red : Color.primary)
+                TextField("Filter args / key...", text: $viewModel.filterKeyword)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 11))
+                    .frame(minWidth: 120, maxWidth: 220)
+
+                if !viewModel.filterKeyword.isEmpty {
+                    Button(action: { viewModel.filterKeyword = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .help("Keys evicted due to maxmemory limit")
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3.5)
+            .background(Color(NSColor.controlBackgroundColor))
+            .cornerRadius(5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+            )
+
+            // Reset filters button
+            if viewModel.hasActiveFilters {
+                Button(action: {
+                    viewModel.resetFilters()
+                }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                        Text("Reset")
+                            .font(.system(size: 10, weight: .medium))
+                    }
+                    .foregroundStyle(Color.red)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3.5)
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(5)
+                }
+                .buttonStyle(.plain)
+                .help("Clear all active filters")
+            }
 
             Spacer()
+
+            // Filtered counter badge
+            let matchCount = viewModel.filteredEntries.count
+            Text("\(matchCount) matched")
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .foregroundStyle(viewModel.hasActiveFilters ? Color.accentColor : Color.secondary)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(viewModel.hasActiveFilters ? Color.accentColor.opacity(0.12) : Color(NSColor.controlBackgroundColor))
+                .clipShape(Capsule())
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
     }
 
@@ -228,15 +296,15 @@ struct RedisMonitorView: View {
             // Table Header
             HStack(spacing: 8) {
                 Text("Timestamp")
-                    .frame(width: 110, alignment: .leading)
+                    .frame(width: 105, alignment: .leading)
                 Text("Node")
-                    .frame(width: 130, alignment: .leading)
+                    .frame(width: 125, alignment: .leading)
                 Text("DB")
-                    .frame(width: 40, alignment: .center)
+                    .frame(width: 35, alignment: .center)
                 Text("Client")
-                    .frame(width: 140, alignment: .leading)
+                    .frame(width: 135, alignment: .leading)
                 Text("Command")
-                    .frame(width: 100, alignment: .leading)
+                    .frame(width: 90, alignment: .leading)
                 Text("Arguments")
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -254,11 +322,17 @@ struct RedisMonitorView: View {
                     Spacer()
                     if viewModel.isMonitoring {
                         ProgressView().controlSize(.small)
-                        Text("Waiting for commands from Redis server...")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
+                        if viewModel.hasActiveFilters {
+                            Text("No commands match current filter conditions")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Waiting for commands from Redis server...")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                        }
                     } else {
-                        Text("Live Monitor is stopped")
+                        Text("Monitor is stopped")
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
@@ -266,46 +340,85 @@ struct RedisMonitorView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView(.vertical, showsIndicators: true) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(items) { entry in
-                            HStack(spacing: 8) {
-                                Text(entry.timestampString)
-                                    .frame(width: 110, alignment: .leading)
-                                    .foregroundStyle(.secondary)
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: true) {
+                        LazyVStack(spacing: 0) {
+                            ForEach(items) { entry in
+                                let isSelected = viewModel.selectedEntry?.id == entry.id
+                                HStack(spacing: 8) {
+                                    Text(entry.timestampString)
+                                        .frame(width: 105, alignment: .leading)
+                                        .foregroundStyle(.secondary)
 
-                                Text(entry.node)
-                                    .frame(width: 130, alignment: .leading)
-                                    .foregroundStyle(.secondary)
+                                    Text(entry.node)
+                                        .frame(width: 125, alignment: .leading)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
 
-                                Text(String(entry.db))
-                                    .frame(width: 40, alignment: .center)
-                                    .foregroundStyle(.secondary)
+                                    Text(String(entry.db))
+                                        .frame(width: 35, alignment: .center)
+                                        .foregroundStyle(.secondary)
 
-                                Text(entry.client)
-                                    .frame(width: 140, alignment: .leading)
-                                    .foregroundStyle(.secondary)
+                                    Text(entry.client)
+                                        .frame(width: 135, alignment: .leading)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
 
-                                Text(entry.command)
-                                    .frame(width: 100, alignment: .leading)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(commandColor(entry.command))
+                                    Text(entry.command)
+                                        .frame(width: 90, alignment: .leading)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(commandColor(entry.command))
 
-                                Text(entry.arguments)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .foregroundStyle(.primary)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
+                                    Text(entry.arguments)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .foregroundStyle(.primary)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
+                                }
+                                .font(.system(size: 11, design: .monospaced))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(
+                                    isSelected
+                                        ? Color.accentColor.opacity(0.18)
+                                        : Color.primary.opacity(0.02)
+                                )
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if viewModel.selectedEntry?.id == entry.id {
+                                        viewModel.selectedEntry = nil
+                                    } else {
+                                        viewModel.selectedEntry = entry
+                                    }
+                                }
+                                .contextMenu {
+                                    Button("Copy Full Command") {
+                                        PasteboardHelper.copy("\(entry.command) \(entry.arguments)")
+                                    }
+                                    Button("Copy Arguments") {
+                                        PasteboardHelper.copy(entry.arguments)
+                                    }
+                                    Button("Copy Client Address") {
+                                        PasteboardHelper.copy(entry.client)
+                                    }
+                                    Divider()
+                                    Button("Filter by this Command (\(entry.command))") {
+                                        viewModel.filterCommand = entry.command
+                                    }
+                                    Button("Filter by this Client (\(entry.client))") {
+                                        viewModel.filterClient = entry.client
+                                    }
+                                }
+
+                                Divider()
                             }
-                            .font(.system(size: 11, design: .monospaced))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 5)
-                            .background(
-                                Rectangle()
-                                    .fill(Color.primary.opacity(0.02))
-                            )
-
-                            Divider()
+                        }
+                    }
+                    .onChange(of: items.first?.id) { _, _ in
+                        if viewModel.isAutoScrollEnabled, let firstId = items.first?.id {
+                            proxy.scrollTo(firstId, anchor: .top)
                         }
                     }
                 }
@@ -313,9 +426,67 @@ struct RedisMonitorView: View {
         }
     }
 
+    // MARK: - Detail Inspector Drawer
+
+    private func detailInspector(_ entry: MonitorCommandEntry) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                HStack(spacing: 6) {
+                    Text(entry.command)
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundStyle(commandColor(entry.command))
+
+                    Text("DB \(entry.db)")
+                        .font(.system(size: 10, weight: .semibold))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.secondary.opacity(0.15))
+                        .cornerRadius(3)
+
+                    Text(entry.timestampString)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+
+                    Text("Client: \(entry.client)")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Button("Copy Command") {
+                    PasteboardHelper.copy("\(entry.command) \(entry.arguments)")
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 11))
+                .foregroundStyle(Color.accentColor)
+
+                Button(action: {
+                    viewModel.selectedEntry = nil
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+
+            ScrollView(.horizontal, showsIndicators: true) {
+                Text(entry.arguments.isEmpty ? "<no arguments>" : entry.arguments)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.primary)
+                    .textSelection(.enabled)
+            }
+            .frame(maxHeight: 60)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(Color(NSColor.controlBackgroundColor))
+    }
+
     private func commandColor(_ cmd: String) -> Color {
         switch cmd {
-        case "GET", "MGET", "HGET", "HGETALL", "LRANGE", "SMEMBERS", "ZRANGE":
+        case "GET", "MGET", "HGET", "HGETALL", "LRANGE", "SMEMBERS", "ZRANGE", "SCAN", "KEYS":
             return .blue
         case "SET", "SETEX", "MSET", "HSET", "LPUSH", "RPUSH", "SADD", "ZADD":
             return .green
@@ -323,143 +494,10 @@ struct RedisMonitorView: View {
             return .red
         case "EXPIRE", "PEXPIRE", "PERSIST", "TTL", "TYPE", "MEMORY":
             return .orange
-        case "PING", "INFO", "MONITOR", "CLIENT", "SELECT":
+        case "PING", "INFO", "MONITOR", "CLIENT", "SELECT", "AUTH":
             return .purple
         default:
             return .primary
         }
-    }
-
-    // MARK: - Command Chart Section
-
-    private var commandChartSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Command Rate History")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-
-            CommandLineChart(history: viewModel.commandHistory, latestOps: viewModel.latestMetrics.instantOpsPerSec)
-                .frame(height: 90)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.secondary.opacity(0.12), lineWidth: 0.5)
-                )
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-    }
-}
-
-// MARK: - Command Line Chart
-
-private struct CommandLineChart: View {
-    let history: [CommandHistoryPoint]
-    let latestOps: Int
-
-    private static let timeFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm:ss"
-        return f
-    }()
-
-    var body: some View {
-        GeometryReader { geo in
-            let labelWidth: CGFloat = 36
-            let bottomLabelHeight: CGFloat = 16
-            let plotWidth = max(10, geo.size.width - labelWidth - 8)
-            let plotHeight = max(10, geo.size.height - bottomLabelHeight - 6)
-
-            let effectivePoints: [CommandHistoryPoint] = {
-                if history.count >= 2 {
-                    return history
-                } else if let single = history.first {
-                    let now = Date()
-                    return [
-                        CommandHistoryPoint(timestamp: now.addingTimeInterval(-60), ops: single.ops),
-                        single
-                    ]
-                } else {
-                    let now = Date()
-                    return [
-                        CommandHistoryPoint(timestamp: now.addingTimeInterval(-60), ops: latestOps),
-                        CommandHistoryPoint(timestamp: now, ops: latestOps)
-                    ]
-                }
-            }()
-
-            let rawMaxOps = effectivePoints.map(\.ops).max() ?? latestOps
-            let maxY = max(10.0, ceil(Double(rawMaxOps) * 1.25 / 10.0) * 10.0)
-            let yTicks: [Double] = [maxY, maxY * 0.5, 0.0]
-
-            ZStack(alignment: .topLeading) {
-                // Y-Axis Labels and Grid Lines
-                ForEach(yTicks, id: \.self) { val in
-                    let yPos = plotHeight * CGFloat(1.0 - (val / maxY))
-
-                    Text("\(Int(val))")
-                        .font(.system(size: 8, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                        .frame(width: labelWidth, alignment: .trailing)
-                        .position(x: labelWidth / 2, y: yPos)
-
-                    Path { path in
-                        path.move(to: CGPoint(x: labelWidth + 4, y: yPos))
-                        path.addLine(to: CGPoint(x: labelWidth + 4 + plotWidth, y: yPos))
-                    }
-                    .stroke(Color.secondary.opacity(0.12), style: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
-                }
-
-                // Yellow Line Path
-                Path { path in
-                    for (index, pt) in effectivePoints.enumerated() {
-                        let xFactor = CGFloat(index) / CGFloat(max(1, effectivePoints.count - 1))
-                        let x = labelWidth + 4 + xFactor * plotWidth
-                        let opsClamped = min(maxY, max(0.0, Double(pt.ops)))
-                        let y = plotHeight * CGFloat(1.0 - (opsClamped / maxY))
-
-                        if index == 0 {
-                            path.move(to: CGPoint(x: x, y: y))
-                        } else {
-                            path.addLine(to: CGPoint(x: x, y: y))
-                        }
-                    }
-                }
-                .stroke(Color.yellow, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-
-                // X-Axis Time Labels
-                let sampleIndices = calculateSampleIndices(count: effectivePoints.count)
-                ForEach(sampleIndices, id: \.self) { idx in
-                    let pt = effectivePoints[idx]
-                    let xFactor = CGFloat(idx) / CGFloat(max(1, effectivePoints.count - 1))
-                    let x = labelWidth + 4 + xFactor * plotWidth
-                    let timeStr = Self.timeFormatter.string(from: pt.timestamp)
-
-                    Text(timeStr)
-                        .font(.system(size: 8, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                        .position(x: x, y: plotHeight + 8)
-                }
-            }
-        }
-    }
-
-    private func calculateSampleIndices(count: Int) -> [Int] {
-        guard count > 0 else { return [] }
-        if count <= 4 {
-            return Array(0..<count)
-        }
-        let step = max(1, (count - 1) / 3)
-        var indices = [0]
-        var curr = step
-        while curr < count - 1 {
-            indices.append(curr)
-            curr += step
-        }
-        indices.append(count - 1)
-        return indices
     }
 }

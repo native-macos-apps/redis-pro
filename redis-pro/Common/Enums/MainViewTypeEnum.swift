@@ -14,5 +14,6 @@ enum MainViewTypeEnum{
     case EDITOR
     case QUERY
     case ANALYSIS
+    case METRICS
     case MONITOR
 }

@@ -2,7 +2,7 @@
 //  RedisMonitorStore.swift
 //  redis-pro
 //
-//  Created for Real-time Live Monitor and Server Metrics.
+//  Created for Real-time Command Log Stream and Multi-condition Filtering.
 //
 
 import Foundation
@@ -15,20 +15,21 @@ private let logger = Logger(label: "redis-pro.RedisMonitorStore")
 @MainActor
 final class RedisMonitorViewModel {
     var isMonitoring: Bool = false
-    var filterKeyword: String = ""
     var entries: [MonitorCommandEntry] = []
-    var latestMetrics: MonitorLiveMetrics = MonitorLiveMetrics()
-    var commandHistory: [CommandHistoryPoint] = []
-    var fragmentationHistory: [FragmentationPoint] = []
-    var latestFragmentationRatio: Double = 1.0
-    var latestWasteBytes: Int = 0
+
+    // Filter bar conditions
+    var filterDb: String = "All"
+    var filterCommand: String = ""
+    var filterClient: String = ""
+    var filterKeyword: String = ""
+
+    // Options and selection
+    var isAutoScrollEnabled: Bool = true
+    var selectedEntry: MonitorCommandEntry? = nil
 
     private let redisInstance: RedisInstanceModel
     private var monitorConnection: HiredisConnection?
     private var monitorTask: Task<Void, Never>?
-    private var metricsTask: Task<Void, Never>?
-
-    private let maxHistoryPoints = 30
     private let maxEntries = 5000
 
     init(redisInstance: RedisInstanceModel) {
@@ -36,14 +37,56 @@ final class RedisMonitorViewModel {
         logger.info("RedisMonitorViewModel initialized")
     }
 
+    static let standardDbs: [String] = ["All"] + (0...15).map(String.init)
+    var availableDbs: [String] {
+        Self.standardDbs
+    }
+
+    var hasActiveFilters: Bool {
+        filterDb != "All" ||
+        !filterCommand.trimmingCharacters(in: .whitespaces).isEmpty ||
+        !filterClient.trimmingCharacters(in: .whitespaces).isEmpty ||
+        !filterKeyword.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    func resetFilters() {
+        filterDb = "All"
+        filterCommand = ""
+        filterClient = ""
+        filterKeyword = ""
+    }
+
     var filteredEntries: [MonitorCommandEntry] {
-        let kw = filterKeyword.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !kw.isEmpty else { return entries }
-        return entries.filter {
-            $0.command.lowercased().contains(kw) ||
-            $0.arguments.lowercased().contains(kw) ||
-            $0.client.lowercased().contains(kw) ||
-            $0.node.lowercased().contains(kw)
+        let clientKw = filterClient.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let keyKw = filterKeyword.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let cmdKw = filterCommand.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let dbFilter = filterDb
+
+        return entries.filter { entry in
+            // DB filter (All or 0..15)
+            if dbFilter != "All" {
+                if String(entry.db) != dbFilter { return false }
+            }
+
+            // Command filter
+            if !cmdKw.isEmpty {
+                if !entry.command.uppercased().contains(cmdKw) { return false }
+            }
+
+            // Client filter
+            if !clientKw.isEmpty {
+                if !entry.client.lowercased().contains(clientKw) { return false }
+            }
+
+            // Keyword / Arguments filter
+            if !keyKw.isEmpty {
+                if !entry.arguments.lowercased().contains(keyKw) &&
+                   !entry.command.lowercased().contains(keyKw) {
+                    return false
+                }
+            }
+
+            return true
         }
     }
 
@@ -51,12 +94,10 @@ final class RedisMonitorViewModel {
 
     func onAppear() {
         startMonitoring()
-        startMetricsPolling()
     }
 
     func onDisappear() {
         stopMonitoring()
-        stopMetricsPolling()
     }
 
     func toggleMonitoring() {
@@ -69,11 +110,11 @@ final class RedisMonitorViewModel {
 
     func clear() {
         entries.removeAll()
+        selectedEntry = nil
     }
 
     func stop() {
         stopMonitoring()
-        stopMetricsPolling()
     }
 
     // MARK: - Monitor Streaming
@@ -126,150 +167,6 @@ final class RedisMonitorViewModel {
         monitorTask = nil
         monitorConnection?.close()
         monitorConnection = nil
-    }
-
-    // MARK: - Metrics Polling
-
-    private func startMetricsPolling() {
-        metricsTask?.cancel()
-        metricsTask = Task {
-            while !Task.isCancelled {
-                await fetchLiveMetrics()
-                try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5s interval
-            }
-        }
-    }
-
-    private func stopMetricsPolling() {
-        metricsTask?.cancel()
-        metricsTask = nil
-    }
-
-    private func fetchLiveMetrics() async {
-        do {
-            let client = redisInstance.getClient()
-
-            // Memory info
-            let memReply = try await client.execute(command: "INFO", args: ["memory"])
-            var usedMemHuman = "-"
-            var rssHuman = "-"
-            var peakHuman = "-"
-            var fragRatio = 1.0
-            var waste = 0
-
-            if let info = memReply.stringValue {
-                let parsed = parseInfoSection(info)
-                usedMemHuman = parsed["used_memory_human"] ?? "-"
-                rssHuman = parsed["used_memory_rss_human"] ?? "-"
-                peakHuman = parsed["used_memory_peak_human"] ?? "-"
-
-                if let r = parsed["mem_fragmentation_ratio"], let d = Double(r) {
-                    fragRatio = d
-                }
-                if let used = parsed["used_memory"], let usedVal = Int(used),
-                   let rss = parsed["used_memory_rss"], let rssVal = Int(rss) {
-                    waste = max(0, rssVal - usedVal)
-                }
-            }
-
-            // CPU info
-            let cpuReply = try? await client.execute(command: "INFO", args: ["cpu"])
-            var cpuSys = 0.0
-            var cpuUser = 0.0
-            if let cpuInfo = cpuReply?.stringValue {
-                let parsed = parseInfoSection(cpuInfo)
-                if let sys = parsed["used_cpu_sys"], let d = Double(sys) { cpuSys = d }
-                if let usr = parsed["used_cpu_user"], let d = Double(usr) { cpuUser = d }
-            }
-
-            // Stats info (ops/sec, hits, misses, evictions)
-            let statsReply = try? await client.execute(command: "INFO", args: ["stats"])
-            var opsPerSec = 0
-            var hits = 0
-            var misses = 0
-            var evictedKeys = 0
-            if let statsInfo = statsReply?.stringValue {
-                let parsed = parseInfoSection(statsInfo)
-                if let ops = parsed["instantaneous_ops_per_sec"], let i = Int(ops) { opsPerSec = i }
-                if let h = parsed["keyspace_hits"], let i = Int(h) { hits = i }
-                if let m = parsed["keyspace_misses"], let i = Int(m) { misses = i }
-                if let e = parsed["evicted_keys"], let i = Int(e) { evictedKeys = i }
-            }
-
-            let totalOps = hits + misses
-            let hitRatio = totalOps > 0 ? (Double(hits) / Double(totalOps)) * 100.0 : 100.0
-
-            // Clients info (connected, blocked)
-            let clientsReply = try? await client.execute(command: "INFO", args: ["clients"])
-            var connectedClients = 0
-            var blockedClients = 0
-            if let clientsInfo = clientsReply?.stringValue {
-                let parsed = parseInfoSection(clientsInfo)
-                if let c = parsed["connected_clients"], let i = Int(c) { connectedClients = i }
-                if let b = parsed["blocked_clients"], let i = Int(b) { blockedClients = i }
-            }
-
-            // Persistence info (rdb_last_bgsave_status)
-            let persistenceReply = try? await client.execute(command: "INFO", args: ["persistence"])
-            var rdbStatus = "ok"
-            if let persistenceInfo = persistenceReply?.stringValue {
-                let parsed = parseInfoSection(persistenceInfo)
-                if let s = parsed["rdb_last_bgsave_status"] { rdbStatus = s }
-            }
-
-            let wasteHuman = ByteCountFormatter.string(fromByteCount: Int64(waste), countStyle: .binary)
-
-            self.latestMetrics = MonitorLiveMetrics(
-                usedMemoryHuman: usedMemHuman,
-                usedMemoryRssHuman: rssHuman,
-                peakMemoryHuman: peakHuman,
-                fragmentationRatio: fragRatio,
-                wasteBytesHuman: wasteHuman,
-                cpuSys: cpuSys,
-                cpuUser: cpuUser,
-                instantOpsPerSec: opsPerSec,
-                hitRatio: hitRatio,
-                hits: hits,
-                misses: misses,
-                connectedClients: connectedClients,
-                blockedClients: blockedClients,
-                evictedKeys: evictedKeys,
-                rdbLastBgsaveStatus: rdbStatus
-            )
-
-            self.latestFragmentationRatio = fragRatio
-            self.latestWasteBytes = waste
-
-            // Update command history
-            let cmdPoint = CommandHistoryPoint(timestamp: Date(), ops: opsPerSec)
-            self.commandHistory.append(cmdPoint)
-            if self.commandHistory.count > self.maxHistoryPoints {
-                self.commandHistory.removeFirst(self.commandHistory.count - self.maxHistoryPoints)
-            }
-
-            // Update fragmentation chart history
-            let point = FragmentationPoint(ratio: fragRatio, wasteBytes: waste)
-            self.fragmentationHistory.append(point)
-            if self.fragmentationHistory.count > self.maxHistoryPoints {
-                self.fragmentationHistory.removeFirst(self.fragmentationHistory.count - self.maxHistoryPoints)
-            }
-        } catch {
-            logger.warning("Failed to fetch live metrics: \(error)")
-        }
-    }
-
-    private func parseInfoSection(_ raw: String) -> [String: String] {
-        var map: [String: String] = [:]
-        let lines = raw.components(separatedBy: .newlines)
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmed.isEmpty, !trimmed.hasPrefix("#") else { continue }
-            let parts = trimmed.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: true)
-            if parts.count == 2 {
-                map[String(parts[0])] = String(parts[1])
-            }
-        }
-        return map
     }
 
     // MARK: - Parsing Helper
